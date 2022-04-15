@@ -18,9 +18,29 @@ namespace DayOfFun.Model
     {
         public int Id { get; set; }
 
-        private List<Question>? _questions;
+        public String Title { get; set; }
 
-        public List<Question>? Questions
+        [Column]
+        public User Owner;
+
+        public String? Tags;
+
+        public virtual HashSet<User>? WaitingUsers { get; set; }
+
+        [NotMapped]
+        public virtual HashSet<User>? Users { get; set; }
+
+        public State State { get; set; }
+
+        public Quiz()
+        {
+            this.Title = "UKNOWN";
+            this.State = State.CREATED;
+        }
+
+        private HashSet<Question>? _questions;
+        
+        public virtual HashSet<Question>? Questions
         {
             get => _questions;
             set
@@ -29,10 +49,21 @@ namespace DayOfFun.Model
                 {
                     _questions = value;
                     State = State.PREPARED;
-                    WaitingUsers = new List<User>() {Owner};
+                    WaitingUsers = new HashSet<User> {Owner};
+                    Users = new HashSet<User>() {Owner};
                     foreach (var question in value)
                     {
-                        resultset.Add(question, new List<Answer>());
+                        resultset.Add(question, new HashSet<Answer>());
+                    }
+                }
+                else if (State == State.WAITING || State == State.FINISHED)
+                {
+                    _questions.UnionWith(value);
+                    State = State.WAITING;
+                    WaitingUsers.UnionWith(Users);
+                    foreach (var question in value)
+                    {
+                        resultset.Add(question, new HashSet<Answer>());
                     }
                 }
                 else
@@ -42,25 +73,23 @@ namespace DayOfFun.Model
             }
         }
 
-        private Dictionary<Question, List<Answer>> resultset = new Dictionary<Question, List<Answer>>();
-
-        public String Title { get; set; }
-
-        public User Owner;
-
-        public String Tags;
-
-        public List<User>? WaitingUsers { get; set; }
-
-        public List<User>? Users { get; set; }
-
-        public State State { get; set; }
-
-        public Quiz()
+        public void AddQuestions(HashSet<Question> questions, HashSet<User> users)
         {
-            this.Title = "UKNOWN";
-            this.State = State.CREATED;
+            Questions = questions;
+            foreach (var user in users)
+            {
+                WaitingUsers.Add(user);
+                Users.Add(user);
+            }
         }
+
+        public void AddQuestions(HashSet<Question> questions)
+        {
+            Questions = questions;
+            WaitingUsers = Users;
+        }
+
+        private Dictionary<Question, HashSet<Answer>> resultset = new Dictionary<Question, HashSet<Answer>>();
 
         public bool isValid()
         {
@@ -112,51 +141,61 @@ namespace DayOfFun.Model
             return false;
         }
 
-        public void Update(List<Answer> answers)
+        public void Update(HashSet<Answer> answers, User user)
         {
             Boolean IsCompleted = false;
             if (State == State.PREPARED || State == State.WAITING)
             {
                 foreach (var answer in answers)
                 {
-                    Question q = _questions.Find(q => q.Id == answer.Id);
+                    Question q = _questions.Where(q => q.Id == answer.QuestionId).FirstOrDefault();
                     resultset[q].Add(answer);
                 }
-                CheckUsers();
+
+                CheckUsers(user);
             }
 
             if (State == State.WAITING)
             {
-
             }
 
             foreach (var answer in answers)
             {
-
             }
         }
-        
-        private void CheckUsers()
+
+        private void CheckUsers(User user)
         {
+            Boolean t = true;
             foreach (var pair in resultset)
             {
-                if (pair.Value.TrueForAll(v => WaitingUsers.Find(u => u.Id == v.Id) != null))
+                if (pair.Value.Where(answer => answer.UserId == user.Id) == null)
                 {
-                    State = State.FINISHED;
-                }
-                else
-                {
-                    State = State.WAITING;
+                    t = false;
                 }
             }
+
+            if (t)
+            {
+                WaitingUsers.Remove(user);
+            }
+
+            if (WaitingUsers.Count == 0)
+            {
+                State = State.FINISHED;
+            }
+            else
+            {
+                State = State.WAITING;
+            }
         }
-        
+
         public void addQuestion(Question Question, User user, Answer answer)
         {
             if (State == State.WAITING)
             {
-                resultset.Add(Question, new List<Answer>() {answer});
-                Update(new List<Answer>() {answer});
+                resultset.Add(Question, new HashSet<Answer>() {answer});
+                Update(new HashSet<Answer>() {answer}, user);
             }
             else
             {
