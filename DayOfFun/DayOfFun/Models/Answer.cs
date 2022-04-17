@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DayOfFun.Model
 {
@@ -28,6 +29,7 @@ namespace DayOfFun.Model
             get; init; 
             
         }
+        [Key]
         public int Id {
             get; 
             set; 

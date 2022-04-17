@@ -1,23 +1,25 @@
 ﻿using DayOfFun.Model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace WebApplication1.context;
+namespace DayOfFun.Data;
 
-public class QuizContext : DbContext
+public class ApplicationDbContext : DbContext
 {
     public static ILoggerFactory _logger = LoggerFactory.Create(builder => builder.AddConsole());
     public DbSet<Quiz> quizes { get; set; }
     public DbSet<Answer> answersSet { get; set; }
     public DbSet<User> users { get; set; }
+    
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         User user1 = new User() {Id = 1, Email = "zmikundkras@seznam.cz", Name = "Přéma"};
         User user2 = new User() {Id = 2, Email = "falafelvtortile@email.cz", Name = "Baru"};
-
-        modelBuilder.Entity<User>().HasData(
-            user1, user2
-        );
 
         Quiz quiz = new Quiz()
         {
@@ -89,6 +91,24 @@ public class QuizContext : DbContext
         answers = new HashSet<Answer>() {a18, a19, a20};
         quiz.Update(answers, user1);
 
+        /*
+        modelBuilder.Entity<Quiz_Questions>().HasKey(
+            qq => new {qq.QuestionId, qq.QuizId}
+        );
+
+        modelBuilder.Entity<Quiz_Questions>()
+            .HasOne(qq => qq.quiz)
+            .WithMany(qq => qq.Questions)
+            .HasForeignKey(q => q.QuizId);
+        
+        
+
+        modelBuilder.Entity<User>()
+            .OwnsMany(user => user.Quizzes)
+            .HasData(
+                user1, user2
+        );
+
         modelBuilder.Entity<Answer>().HasData(
             a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20
         );
@@ -112,9 +132,11 @@ public class QuizContext : DbContext
                     new {QuizId = 1, QuestionId = 9},
                     new {QuizId = 1, QuestionId = 10}
                 )
-            ).HasData(
+            )
+            .Ow(quiz => quiz.Owner)
+            .HasData(
                 new {Id = 1, Title = "Co budeme dělat?", Owner = user1, State = State.FINISHED}
-            );
+            );*/
 
         base.OnModelCreating(modelBuilder);
     }
