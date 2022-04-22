@@ -16,12 +16,17 @@ public class UserService : IUserService
     public IEnumerable<Quiz> getQuizzesByUserId(int userId)
     {
         User user = getUserByID(userId);
-        return _context.quizes.Where(quiz => quiz.Owner == user || quiz.Users.Contains(user)).ToList();
+        List<Quiz> quizzes = new List<Quiz>();
+        foreach (var quizzesUser in user.Quizzes_Users)
+        {
+            quizzes.Add(quizzesUser.quiz);
+        }
+        return quizzes;
     }
 
     public User getUserByID(int userId)
     {
-        return _context.users.Where(user => user.Id == userId).First();
+        return _context.Users.Where(user => user.Id == userId).First();
     }
 
     public void addUser()

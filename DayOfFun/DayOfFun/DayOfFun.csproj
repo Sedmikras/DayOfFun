@@ -21,6 +21,11 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0-preview.3.22175.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0-preview.3.22175.1" />
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.3" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="context" />
     </ItemGroup>
 
 </Project>

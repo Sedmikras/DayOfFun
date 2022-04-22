@@ -16,7 +16,7 @@ public class QuizManagesTest
         };
         Assert.IsTrue(quiz.State == State.CREATED);
         Question q1 = new Question() {Enabled = true, Id = 1, Text = "Budeme běhat"};
-        HashSet<Question> questions = new HashSet<Question>() {q1};
+        List<Question> questions = new List<Question>() {q1};
         quiz.Questions = questions;
         Assert.IsTrue(quiz.State == State.PREPARED);
         Answer a1 = new Answer() {Id = 1, UserId = user1.Id, QuestionId = q1.Id, QuizId = quiz.Id, Result = Result.NO};
@@ -42,7 +42,7 @@ public class QuizManagesTest
         Question q5 = new Question() {Enabled = true, Id = 5, Text = "Divadlo"};
         Question q6 = new Question() {Enabled = true, Id = 6, Text = "Šopíkovat oblečení"};
         Question q7 = new Question() {Enabled = true, Id = 7, Text = "Hrát na housle"};
-        HashSet<Question> questions = new HashSet<Question>() {q1, q2, q3, q4, q5, q6, q7};
+        List<Question> questions = new List<Question>() {q1, q2, q3, q4, q5, q6, q7};
         quiz.AddQuestions(questions, new HashSet<User>(){user2});
         Assert.IsTrue(quiz.State == State.PREPARED);
         
@@ -71,7 +71,7 @@ public class QuizManagesTest
         Question q8 = new Question() {Enabled = true, Id = 8, Text = "Vařit"};
         Question q9 = new Question() {Enabled = true, Id = 9, Text = "Péct"};
         Question q10 = new Question() {Enabled = true, Id = 10, Text = "Výletit"};
-        questions = new HashSet<Question>() {q8, q9, q10};
+        questions = new List<Question>() {q8, q9, q10};
         quiz.AddQuestions(questions);
         Assert.IsTrue(quiz.State == State.WAITING);
         

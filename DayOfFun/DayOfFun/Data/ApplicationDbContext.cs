@@ -1,4 +1,6 @@
-﻿using DayOfFun.Model;
+﻿using Azure.Core;
+using DayOfFun.Model;
+using DayOfFun.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,10 +9,14 @@ namespace DayOfFun.Data;
 public class ApplicationDbContext : DbContext
 {
     public static ILoggerFactory _logger = LoggerFactory.Create(builder => builder.AddConsole());
-    public DbSet<Quiz> quizes { get; set; }
-    public DbSet<Answer> answersSet { get; set; }
-    public DbSet<User> users { get; set; }
-    
+    public DbSet<Quiz> Quizzes { get; set; }
+    public DbSet<User> Users { get; set; }
+    public DbSet<Quizzes_Users> Quizzes_Users { get; set; }
+    public DbSet<Question> Questions { get; set; }
+    public DbSet<Quizzes_Users>? Question_Users { get; set; }
+    public DbSet<Quizzes_Quesitons> Quizzes_Questions { get; set; }
+    public DbSet<Answer> Answers { get; set; }
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
@@ -18,12 +24,115 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        User user1 = new User() {Id = 1, Email = "zmikundkras@seznam.cz", Name = "Přéma"};
-        User user2 = new User() {Id = 2, Email = "falafelvtortile@email.cz", Name = "Baru"};
-
-        Quiz quiz = new Quiz()
+        modelBuilder.Entity<Quizzes_Users>().HasKey(qu => new
         {
-            Id = 1, Owner = user1, Title = "Co budeme dělat odpoledne ?", Users = null, WaitingUsers = null
+            qu.quizId,
+            qu.userId
+        });
+
+        modelBuilder.Entity<Quizzes_Users>()
+            .HasOne(user => user.user)
+            .WithMany(qu => qu.Quizzes_Users)
+            .HasForeignKey(u => u.userId);
+
+        modelBuilder.Entity<Quizzes_Users>()
+            .HasOne(user => user.quiz)
+            .WithMany(qu => qu.Quizzes_Users)
+            .HasForeignKey(u => u.quizId);
+
+        modelBuilder.Entity<User>().HasData(
+            new {Id = 1, Email = "zmikundkras@seznam.cz", Name = "Přéma"},
+            new {Id = 2, Email = "falafelvtortile@email.cz", Name = "Baru"}
+        );
+
+        modelBuilder.Entity<Quiz>().HasData(
+            new {Id = 1, Title = "Co budeme dělat ?", OwnerId = 1, State = State.CREATED}
+        );
+
+        modelBuilder.Entity<Quizzes_Users>().HasData(
+            new {Id = 1, userId = 1, quizId = 1},
+            new {Id = 2, userId = 2, quizId = 1}
+        );
+
+        modelBuilder.Entity<Question>().HasData(
+            new {Enabled = true, Id = 1, Text = "Pracovat"},
+            new {Enabled = true, Id = 2, Text = "Okopávat záhonek"},
+            new {Enabled = true, Id = 3, Text = "Nic"},
+            new {Enabled = true, Id = 4, Text = "Běhat"},
+            new {Enabled = true, Id = 5, Text = "Divadlo"},
+            new {Enabled = true, Id = 6, Text = "Šopíkovat oblečení"},
+            new {Enabled = true, Id = 7, Text = "Hrát na housle"}
+        );
+
+        modelBuilder.Entity<Answer>().HasData(
+            new {Id = 1, UserId = 1, QuestionId = 1, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 2, UserId = 1, QuestionId = 2, QuizId = 1, Result = Result.YES},
+            new {Id = 3, UserId = 1, QuestionId = 3, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 4, UserId = 1, QuestionId = 4, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 5, UserId = 1, QuestionId = 5, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 6, UserId = 1, QuestionId = 6, QuizId = 1, Result = Result.YES},
+            new {Id = 7, UserId = 1, QuestionId = 7, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 8, UserId = 2, QuestionId = 1, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 9, UserId = 2, QuestionId = 2, QuizId = 1, Result = Result.YES},
+            new {Id = 10, UserId = 2, QuestionId = 3, QuizId = 1, Result = Result.NO},
+            new {Id = 11, UserId = 2, QuestionId = 4, QuizId = 1, Result = Result.YES},
+            new {Id = 12, UserId = 2, QuestionId = 5, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 13, UserId = 2, QuestionId = 6, QuizId = 1, Result = Result.IF_MUST},
+            new {Id = 14, UserId = 2, QuestionId = 7, QuizId = 1, Result = Result.YES}
+        );
+
+        modelBuilder.Entity<Quizzes_Quesitons>().HasData(
+            new {Id = 1, QuizID = 1, quesitonId = 1},
+            new {Id = 2, QuizID = 1, quesitonId = 2},
+            new {Id = 3, QuizID = 1, quesitonId = 3},
+            new {Id = 4, QuizID = 1, quesitonId = 4},
+            new {Id = 5, QuizID = 1, quesitonId = 5},
+            new {Id = 6, QuizID = 1, quesitonId = 6},
+            new {Id = 7, QuizID = 1, quesitonId = 7}
+        );
+
+        /*
+        //USERS
+        if (!Users.Any())
+        {
+            Users.AddRange(new List<User>()
+            {
+                new User() {Email = "zmikundkras@seznam.cz", Name = "Přéma"},
+                new User() {Email = "falafelvtortile@email.cz", Name = "Baru"}
+            });
+            this.SaveChanges();
+        }
+
+        //QUIZZES
+        if (!Quizzes.Any())
+        {
+            Quizzes.AddRange(new List<Quiz>()
+            {
+                new Quiz()
+                {
+                    Title = "Co budeme dělat odpoledne ?"
+                }
+            });
+            SaveChanges();
+        }*/
+        /*
+        //CREATE
+        if (!Quizzes_Users.Any())
+        {
+            Quizzes_Users.AddRange(new List<Quizzes_Users>()
+            {
+                new Quizzes_Users()
+                {
+                    quizId = 1,
+                    userId = 1
+                }
+            });
+            SaveChanges();
+        }*/
+
+        /*
+        Quiz quiz = 
+            
         };
 
         Question q1 = new Question() {Enabled = true, Id = 1, Text = "Pracovat"};
@@ -35,7 +144,7 @@ public class ApplicationDbContext : DbContext
         Question q7 = new Question() {Enabled = true, Id = 7, Text = "Hrát na housle"};
         HashSet<Question> questions = new HashSet<Question>() {q1, q2, q3, q4, q5, q6, q7};
         quiz.AddQuestions(questions);
-
+        */ /*
         Answer a1 = new Answer()
             {Id = 1, UserId = user1.Id, QuestionId = q1.Id, QuizId = quiz.Id, Result = Result.IF_MUST};
         Answer a2 = new Answer() {Id = 2, UserId = user1.Id, QuestionId = q2.Id, QuizId = quiz.Id, Result = Result.YES};

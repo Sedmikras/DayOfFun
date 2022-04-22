@@ -11,27 +11,32 @@
             <thead>
             <tr>
                 <th>@Html.DisplayNameFor(model => model.Title)</th>
+                <th>@Html.DisplayNameFor(model => model.State)</th>
                 <th>Actions</th>
             </tr>
             </thead>
             <tbody>
-                @foreach (var quiz in Model)
-                {
-                    <tr>
-                        <td class="align-middle">@quiz.Title</td>
-                        <td class="align-middle">@quiz.State.ToString()</td>
-                        <td>
+            @foreach (var quiz in Model)
+            {
+                <tr>
+                    <td class="align-middle">@quiz.Title</td>
+                    <td class="align-middle">@quiz.State.ToString()</td>
+                    <td>
                             
-                            <button class="btn btn-primary">delete</button>
-                            <button class="btn btn-primary">share</button>
-                            <button class="btn btn-primary">view results</button>
-                        </td>
-                    </tr>
+                        <button class="btn btn-primary">delete</button>
+                        <button class="btn btn-primary">share</button>
+                        <button class="btn btn-primary">view results</button>
+                    </td>
+                </tr>
             }
             </tbody>
         </table>
     </div>
+    <div class="text-white">
+        <a asp-controller="Quiz" asp-action="Create" class="btn btn-success"><i class="bi bi-plus-circle"></i>Add-new</a>
+    </div>
 </div>
+
 @*Define model*@
 @*Define ViewData*@
 

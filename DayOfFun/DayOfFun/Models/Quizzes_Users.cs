@@ -1,11 +1,14 @@
-﻿using DayOfFun.Model;
+﻿using System.ComponentModel.DataAnnotations;
+using DayOfFun.Model;
 
 namespace DayOfFun.Models;
 
 public class Quizzes_Users
 {
-    public int quizId { get; set; }
-    public int userId { get; set; }
-    public User user { get; set; }
-    public Quiz quiz { get; set; }
+    [Key] public int Id { get; set; }
+    public virtual int quizId { get; set; }
+    public virtual Quiz quiz { get; set; }
+    
+    public virtual int userId { get; set; }
+    public virtual User user { get; set; }
 }
