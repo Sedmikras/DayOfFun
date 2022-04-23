@@ -1,0 +1,26 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="com-md-6 offset-md-3">
+        <div class="card login-logout-tab">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link" href='/Identity/Account/Login'>Sign in</a>
+                    </li>
+                    <li>
+                        <a class="nav-link" href='/Identity/Account/Register'>Sign up</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col-md-12"></div>
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

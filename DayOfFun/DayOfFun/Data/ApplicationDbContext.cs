@@ -1,12 +1,11 @@
-﻿using Azure.Core;
-using DayOfFun.Model;
+﻿using DayOfFun.Model;
 using DayOfFun.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace DayOfFun.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User, ApplicationRole, int>
 {
     public static ILoggerFactory _logger = LoggerFactory.Create(builder => builder.AddConsole());
     public DbSet<Quiz> Quizzes { get; set; }
@@ -41,8 +40,8 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(u => u.quizId);
 
         modelBuilder.Entity<User>().HasData(
-            new {Id = 1, Email = "zmikundkras@seznam.cz", Name = "Přéma"},
-            new {Id = 2, Email = "falafelvtortile@email.cz", Name = "Baru"}
+            new {Id = 1, Email = "zmikundkras@seznam.cz", Name = "Přéma", AccessFailedCount = 0, EmailConfirmed = true, LockoutEnabled = false, PhoneNumberConfirmed = false, TwoFactorEnabled = false},
+            new {Id = 2, Email = "falafelvtortile@email.cz", Name = "Baru", AccessFailedCount = 0, EmailConfirmed = true, LockoutEnabled = false, PhoneNumberConfirmed = false, TwoFactorEnabled = false}
         );
 
         modelBuilder.Entity<Quiz>().HasData(
