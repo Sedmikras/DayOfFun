@@ -6,6 +6,7 @@ using DayOfFun.Data;
 using DayOfFun.Data.Services.Contract;
 using DayOfFun.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace DayOfFun.Controllers
 {
@@ -28,17 +29,29 @@ namespace DayOfFun.Controllers
 
         public async Task<IActionResult> Create()
         {
-            return View();
+            Quiz quiz = new Quiz();
+            quiz.ViewCollection.Add(new Question());
+            return View(quiz);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("Title")] Quiz quiz)
+        public async Task<IActionResult> Create(Quiz quiz)
         {
+            foreach (var question in quiz.ViewCollection)
+            {
+                question.Quizzes.Append(quiz);
+            }
+
+            quiz.Users.Append(_service.getUserByID(1));
+            
+            ModelState.Clear();
+            TryValidateModel(quiz);
+            
             if (!ModelState.IsValid)
             {
                 return View(quiz);
             }
-            _quizService.AddQuiz(quiz);
+            //_quizService.AddQuiz(quiz);
             return RedirectToAction(nameof(Index));
         }
     }

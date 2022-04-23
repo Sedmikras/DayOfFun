@@ -1,5 +1,4 @@
-﻿@using Microsoft.CodeAnalysis.Scripting
-@model DayOfFun.Model.Quiz
+﻿@model DayOfFun.Model.Quiz
 
 @{
     ViewData["Title"] = "Create new quiz";
@@ -7,6 +6,7 @@
     Layout = "_Layout";
 }
 
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
 <div class="row text">
     <div class="col-md-8 offset-2">
         <p>
@@ -15,26 +15,42 @@
         <div class="row">
             <div class="col-md-8 offset-2">
                 <form asp-action="Create">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <div class="form-group">
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                    <div class="form-group mb-3">
                         <label asp-for="Title" class="control-label"></label>
                         <input asp-for="Title" class="form-control"/>
                         <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
-                    <div class="form-group">
-                        <div id="pattern">
-                            <label asp-for="Questions[0].Text" class="control-label d-none"></label>
-                            <input asp-for="Questions[0].Text" class="form-control d-none"/>
+                    <div class="form-group mb-3">
+                        <div id="questions">
+                            @for (int i = 0; i < Model.ViewCollection.Count; i++)
+                            {
+                                <div id="question-@i" class="row mb-3">
+                                    <div class="col-8">
+                                        @Html.EditorFor(q => q.ViewCollection[i].Text)
+                                    </div>
+                                    <div class="col-4">
+                                        <button id="btnremove" type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(this, @i)">Delete</button>
+                                    </div>
+                                    <span asp-validation-for="ViewCollection[i].Text" class="text-danger"></span>
+                                </div>
+                                <br/>
+                            }
                         </div>
-                        <a class="btn btn-outline-secondary" onclick="AddQuestion()">Add Question</a>
-                        <div class="row" id="questions">
+                        
+                        <div class="row">
+                            <div class="col-8"></div>
+                            <div class="col-4">
+                                <button id="btnadd" type="button" class="btn btn-sm btn-secondary" onclick="addQuestion(this)">Add</button>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <input type="submit" value="Create" class="btn btn-outline-success float-right"/>
+                        <input type="submit" value="Create" class="btn btn-primary btn-outline-success float-right"/>
                         <a class="btn btn-outline-secondary" asp-action="Index">Show all</a>
                     </div>
                 </form>
+                <input type="hidden" id="lastIndex" value="0"/>
             </div>
         </div>
     </div>
@@ -42,22 +58,30 @@
 
 @section Scripts
 {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        var counter = 0;
-        function AddQuestion() {
+        function addQuestion(btn) {
+            // prepare ID
+            var idElement = document.getElementById("lastIndex")
+            var lastRowId = idElement.value;
+            var nexId = eval(lastRowId) + 1;
+            idElement.value = nexId;
+            
             debugger;
-            var htmlTag = document.getElementById("pattern");
-            var label = htmlTag.children[0];
-            var input = htmlTag.children[1];
-            var text = htmlTag.innerHTML.replaceAll("Questions_" + counter, "Questions_" + (counter +1));
-            text.replaceAll("Questions["+counter + "]", "Questions["+ (counter + 1) + "]")
-            var label = document.createElement("label");
-            label.setAttribute("class", "control-label");
-            var div = document.createElement("div");
-            div.setAttribute("class", "form-control");
-            div.setAttribute("asp-for", "Questions["+counter + "].Text");
-            htmlTag.append(input);
-        }
+            var questionsHtmlElement = document.getElementById("questions");
+            var divs = questionsHtmlElement.querySelectorAll('div[id^=question]');
+            var divOuterHtml = divs[divs.length -1].outerHTML;
+            divOuterHtml.replaceAll('_' + lastRowId + '_', '_' + nexId + '_');
+            divOuterHtml.replaceAll('[' + lastRowId + ']', '[' + nexId + ']');
+            divOuterHtml.replaceAll('-' + lastRowId, '_' + nexId);
+            
+            debugger;
+            var newRow = questionsHtmlElement.appendChild(document.createElement('div'))
+            newRow.innerHTML = divOuterHtml;
+        };  
         
+        function deleteQuestion(btn) {
+            btn.parentElement.parentElement.remove();
+        }
     </script>
 }

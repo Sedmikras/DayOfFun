@@ -17,7 +17,7 @@ namespace DayOfFun.Model
 
         public String? Tags { get; set; }
 
-        public virtual ICollection<Quiz> Quizzes { get; set; }
+        [NotMapped] public virtual ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
         public Question()
         {

@@ -1,7 +1,5 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.CompilerServices;
 using DayOfFun.Models;
 
 namespace DayOfFun.Model
@@ -36,17 +34,17 @@ namespace DayOfFun.Model
         [Column]
         public User Owner;
 
-        // ONE TO MANY
-        public virtual HashSet<User>? WaitingUsers { get; set; }
+        public virtual HashSet<User>? WaitingUsers { get; set; } = new HashSet<User>();
 
         //M:N        
-        public virtual List<Quizzes_Users> Quizzes_Users { get; set; }
+        public virtual List<Quizzes_Users> Quizzes_Users { get; set; } = new List<Quizzes_Users>();
 
 
-        [NotMapped]
-        public virtual HashSet<User>? Users { get; set; }
-        
-        
+        [NotMapped] public virtual HashSet<User>? Users { get; set; } = new HashSet<User>();
+
+
+        [NotMapped] public List<Question> ViewCollection { get; set; } = new List<Question>();
+
         // private attributes
         private List<Question>? _questions;
 
