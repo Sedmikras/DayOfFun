@@ -1,0 +1,60 @@
+@using DayOfFun.Model
+@model DayOfFun.Models.Domain.Quiz_Answer_Model
+
+@{
+    ViewData["Title"] = "Fill";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>@Model.Title</h1>
+<hr/>
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Fill">
+            <div id="necessities">
+                @Html.ValidationSummary(false, "", new {@class = "text-danger"})
+                <input asp-for="Title" value="@Model.Title" type="hidden"/>
+                <input asp-for="UserId" value="@Model.UserId" type="hidden"/>
+                <input asp-for="QuizId" value="@Model.QuizId" type="hidden"/>
+            </div>
+            <div id="questions">
+                @for (int i = 0; i < Model.Questions.Count; i++)
+                {
+                    <div class="row">
+                        <input asp-for="Questions[i].Id" type="hidden">
+                        <input asp-for="Questions[i].Text" type="hidden">
+                        <input asp-for="Questions[i].Enabled" type="hidden">
+                        <input asp-for="Questions[i].Tags" type="hidden">
+                        <span asp-validation-for="Questions[i].Id" class="text-danger"></span>
+                        <span asp-validation-for="Questions[i].Text" class="text-danger"></span>
+                        <span asp-validation-for="Questions[i].Enabled" class="text-danger"></span>
+                        <span asp-validation-for="Questions[i].Tags" class="text-danger"></span>
+                        <input asp-for="QuestionAnswers[i].QuestionId" type="hidden" value="@Model.Questions[i].Id">
+                        <input asp-for="QuestionAnswers[i].QuizId" type="hidden" value="@Model.QuizId">
+                        <input asp-for="QuestionAnswers[i].UserId" type="hidden" value="@Model.UserId">
+                        <span asp-validation-for="QuestionAnswers[i].Result" class="text-danger"></span>
+                        <span asp-validation-for="QuestionAnswers[i].QuestionId" class="text-danger"></span>
+                        <span asp-validation-for="QuestionAnswers[i].QuizId" class="text-danger"></span>
+                        <span asp-validation-for="QuestionAnswers[i].UserId" class="text-danger"></span>
+                        <div class="col-md-8 form-control">
+                            <label class="form-label">@Model.Questions[i].Text</label>
+                        </div>
+                        <div class="col-md-8 form-control">
+                            <select asp-for="QuestionAnswers[i].Result" class="form-control" asp-items="@Html.GetEnumSelectList<Result>()"></select>
+                        </div>
+                    </div>
+                }
+            </div>
+            <input type="submit" value="Create" class="btn btn-primary btn-outline-success float-right"/>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp - action="Index"> Back to List</a>
+</div>
+
+@section Scripts
+{
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

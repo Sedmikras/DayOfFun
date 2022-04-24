@@ -21,7 +21,18 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0-preview.3.22175.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0-preview.3.22175.1" />
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.3" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore" Version="6.0.3" />
         <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Account\Login.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Account\LoginPartial.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Account\Register.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Account\_AuthLayout.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Account\_LoginPartial.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Identity\Pages\_ValidationScriptsPartial.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Identity\Pages\_ViewStart.cshtml" />
     </ItemGroup>
 
 </Project>

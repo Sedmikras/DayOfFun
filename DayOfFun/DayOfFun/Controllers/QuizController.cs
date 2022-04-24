@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using DayOfFun.Data;
 using DayOfFun.Data.Services.Contract;
 using DayOfFun.Model;
+using DayOfFun.Models.Domain;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace DayOfFun.Controllers
 {
@@ -23,7 +18,7 @@ namespace DayOfFun.Controllers
 
         public IActionResult Index()
         {
-            var data = _service.getQuizzesByUserId(1);
+            var data = _quizService.getQuizzesForUser(_service.getUserFromSession(HttpContext.Session));
             return View(data);
         }
 
@@ -42,7 +37,8 @@ namespace DayOfFun.Controllers
                 question.Quizzes.Append(quiz);
             }
 
-            quiz.Users.Append(_service.getUserByID(1));
+            User currentUser = _service.getUserFromSession(HttpContext.Session);
+            quiz.Users.Append(currentUser);
             
             ModelState.Clear();
             TryValidateModel(quiz);
@@ -51,8 +47,41 @@ namespace DayOfFun.Controllers
             {
                 return View(quiz);
             }
-            //_quizService.AddQuiz(quiz);
+            
+            _quizService.AddQuiz(quiz, HttpContext.Session);
             return RedirectToAction(nameof(Index));
         }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            _quizService.Delete(HttpContext.Session,id);
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Fill(int id)
+        {
+            Quiz_Answer_Model model = _quizService.getQuestionsFor(HttpContext.Session, id);
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Fill(Quiz_Answer_Model model)
+        {
+            if (ModelState.IsValid)
+            {
+                _quizService.ValidateModel(model);
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                return View(model);
+            }
+        }
+
+        /*[HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            return null;
+        }*/
     }
 }

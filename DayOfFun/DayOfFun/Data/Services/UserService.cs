@@ -1,7 +1,5 @@
 ﻿using DayOfFun.Data.Services.Contract;
 using DayOfFun.Model;
-using Microsoft.EntityFrameworkCore;
-
 namespace DayOfFun.Data.Services;
 
 public class UserService : IUserService
@@ -32,6 +30,17 @@ public class UserService : IUserService
     public void addUser()
     {
         throw new NotImplementedException();
+    }
+
+    public User getUserFromSession(ISession Session)
+    {
+        if (Session.IsAvailable)
+        {
+            var userId =  Int32.Parse(Session.GetString("UserId"));
+            User u = _context.Users.Where(user => user.Id == userId).First();
+            return u;
+        }
+        return null;
     }
 
     public User updateUser(int id, User newUser)

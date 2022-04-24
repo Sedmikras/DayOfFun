@@ -11,7 +11,8 @@ namespace DayOfFun.Model
         DONE,
         WAITING,
         FINISHED,
-        ARCHIVED
+        ARCHIVED,
+        INVALID
     }
 
     public class Quiz

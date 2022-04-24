@@ -1,0 +1,12 @@
+﻿@using Microsoft.AspNetCore.Http;
+@model dynamic
+
+@{
+    Layout = "_Layout";
+}
+@if (Context.Session.GetString("UserId") != null)
+{
+    <h4>Hello @Context.Session.GetString("Username")</h4>
+    <a href="/Quiz/Index/">Na kvíz</a>                                   
+                                                    
+}

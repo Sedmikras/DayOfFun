@@ -1,17 +1,18 @@
-﻿using DayOfFun.Model;
+using DayOfFun.Model;
 using DayOfFun.Models;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using DayOfFun.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace DayOfFun.Data;
 
-public class ApplicationDbContext : IdentityDbContext<User, ApplicationRole, int>
+public class ApplicationDbContext : DbContext
 {
     public static ILoggerFactory _logger = LoggerFactory.Create(builder => builder.AddConsole());
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Quizzes_Users> Quizzes_Users { get; set; }
     public DbSet<Question> Questions { get; set; }
+    
     public DbSet<Quizzes_Users>? Question_Users { get; set; }
     public DbSet<Quizzes_Quesitons> Quizzes_Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
@@ -23,11 +24,10 @@ public class ApplicationDbContext : IdentityDbContext<User, ApplicationRole, int
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Quizzes_Users>().HasKey(qu => new
-        {
-            qu.quizId,
-            qu.userId
-        });
+        modelBuilder.Entity<Quizzes_Users>().HasKey(qu => new {qu.quizId, qu.userId}).HasName("IX_Question_Users_MultipleColumns");
+        modelBuilder.Entity<Quizzes_Quesitons>().HasKey(qq => new {qq.QuizID, qq.quesitonId}).HasName("IX_Quizzes_Questions_MultipleColumns");
+        modelBuilder.Entity<Answer>()
+            .HasKey(c => new {c.QuestionId, c.QuizId, c.UserId}).HasName("IX_Answers_MultipleColumns");
 
         modelBuilder.Entity<Quizzes_Users>()
             .HasOne(user => user.user)
@@ -40,8 +40,8 @@ public class ApplicationDbContext : IdentityDbContext<User, ApplicationRole, int
             .HasForeignKey(u => u.quizId);
 
         modelBuilder.Entity<User>().HasData(
-            new {Id = 1, Email = "zmikundkras@seznam.cz", Name = "Přéma", AccessFailedCount = 0, EmailConfirmed = true, LockoutEnabled = false, PhoneNumberConfirmed = false, TwoFactorEnabled = false},
-            new {Id = 2, Email = "falafelvtortile@email.cz", Name = "Baru", AccessFailedCount = 0, EmailConfirmed = true, LockoutEnabled = false, PhoneNumberConfirmed = false, TwoFactorEnabled = false}
+            new {Id = 1, Email = "zmikundkras@seznam.cz", Username = "Přéma", Password="1234"},
+            new {Id = 2, Email = "falafelvtortile@email.cz", Username = "Baru", Password="12345"}
         );
 
         modelBuilder.Entity<Quiz>().HasData(
@@ -258,24 +258,5 @@ public class ApplicationDbContext : IdentityDbContext<User, ApplicationRole, int
         optionsBuilder.UseLazyLoadingProxies();
         //TODO
         optionsBuilder.EnableSensitiveDataLogging();
-    }
-
-    void SaveQuiz(Quiz quiz)
-    {
-    }
-
-    List<Quiz> GetQuizesByUser(User user)
-    {
-        return GetQuizesByUserId(user.Id);
-    }
-
-    List<Quiz> GetQuizesByUserId(int userId)
-    {
-        return null;
-    }
-
-    Quiz GetQuizById(int id)
-    {
-        return null;
     }
 }

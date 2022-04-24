@@ -22,6 +22,7 @@ namespace DayOfFun.Model
         public Question()
         {
             this.Text = "DEFAULT";
+            this.Enabled = true;
         }
     }
 }

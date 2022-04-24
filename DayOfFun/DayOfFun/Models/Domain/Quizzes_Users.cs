@@ -6,7 +6,6 @@ namespace DayOfFun.Models;
 
 public class Quizzes_Users
 {
-    [Key] public int Id { get; set; }
     public virtual int quizId { get; set; }
     public virtual Quiz quiz { get; set; }
     

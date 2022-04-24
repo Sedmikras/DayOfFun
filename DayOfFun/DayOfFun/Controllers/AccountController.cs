@@ -1,72 +1,99 @@
+﻿using DayOfFun.Data;
 using DayOfFun.Model;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace DayOfFun.Controllers
+namespace DayOfFun.Controllers;
+
+public class AccountController : Controller
 {
-    public class AccountController : Controller
+    private readonly ApplicationDbContext _context;
+
+    public AccountController(ApplicationDbContext context)
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        _context = context;
+    }
+    public ActionResult Index()
+    {
+        return View(_context.Users.ToList());
+    }
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+    public ActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public ActionResult Register(User userModel)
+    {
+        if (ModelState.IsValid)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-        }
-
-        public IActionResult Login(string returnUrl)
-        {
-            return View(new User());
-        }
-
-
-        [HttpPost]
-        public async Task<IActionResult> Login(User userModel)
-        {
-            if (!ModelState.IsValid)
-                return View(userModel);
-            var user = await _userManager.FindByNameAsync(userModel.Email);
-            if (user != null)
+            if (userModel.Password != userModel.ConfirmPassword)
             {
-                var result = await _signInManager.PasswordSignInAsync(user, userModel.PasswordHash, false, false);
-                if (result.Succeeded)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
+                ModelState.AddModelError("", "Passwords does not match");
+                return View();
             }
 
-            ModelState.AddModelError("", "Username/password not found");
-            return View(userModel);
+            if (_context.Users.Where(user => user.Email == userModel.Email).FirstOrDefault() == null)
+            {
+                _context.Users.Add(userModel);
+                _context.SaveChanges();
+                ModelState.Clear();
+                ViewBag.Message = userModel.Username + " with email [" + userModel.Email + "] succesfully registered";
+            }
+            else
+            {
+                ModelState.AddModelError("","User with email [" + userModel.Email + "] already exists!");
+            }
         }
 
-        public ActionResult Register()
+        return View();
+    }
+
+    public ActionResult Login()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public ActionResult Login(User userModel)
+    {
+        if (userModel.Password != null && userModel.Email != null)
+        {
+            
+            //check user
+            User u = _context.Users.Where(user => user.Email == userModel.Email).FirstOrDefault();
+            if (u.Password != userModel.Password)
+            {
+                ModelState.AddModelError("", "Username or Password is wrong");
+            }
+            else
+            {
+                //load from DB and check passwd and username 
+                HttpContext.Session.SetString("UserId", u.Id.ToString());
+                HttpContext.Session.SetString("Username", u.Username);
+                HttpContext.Session.SetString("Email", u.Email);
+                return RedirectToAction("LoggedIn");
+            }
+        }
+        else
+        {
+            ModelState.AddModelError("", "Username or Password is wrong");
+        }
+
+        return View();
+    }
+
+    public ActionResult LoggedIn()
+    {
+        if (HttpContext.Session.GetString("UserId") != null)
         {
             return View();
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(User userModel)
+        else
         {
-            if (ModelState.IsValid)
-            {
-                var user = new IdentityUser() {UserName = userModel.Name};
-                //var result = await _userManager.CreateAsync(user, userModel.Password);
-
-                //if (result.Succeeded)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-            }
-            return View(userModel);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login");
         }
     }
+
 }

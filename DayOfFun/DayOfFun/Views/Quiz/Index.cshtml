@@ -22,10 +22,25 @@
                     <td class="align-middle">@quiz.Title</td>
                     <td class="align-middle">@quiz.State.ToString()</td>
                     <td>
-                            
-                        <button class="btn btn-primary">delete</button>
-                        <button class="btn btn-primary">share</button>
-                        <button class="btn btn-primary">view results</button>
+                        @switch (quiz.State)
+                        {
+                            case State.CREATED: 
+                                <a asp-controller="Quiz" asp-action="Delete" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>delete</a>
+                                <a asp-controller="Quiz" asp-action="Share" class="btn btn-primary"><i class="bi bi-plus-circle"></i>share</a>
+                                <a asp-controller="Quiz" asp-action="Edit" class="btn btn-primary"><i class="bi bi-plus-circle"></i>Add questions</a>
+                                break;
+                            case State.PREPARED:
+                                <a asp-controller="Quiz" asp-action="Fill" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>fill</a>
+                                break;
+                            case State.WAITING: 
+                                <button class="btn btn-primary" asp-action="Share" asp-controller="Quiz"> share </button>
+                                <button class="btn btn-primary" asp-action="Fill" asp-controller="Quiz"> fill </button>
+                                break;
+                            case State.FINISHED:
+                                <button class="btn btn-primary">view results</button>
+                                <button class="btn btn-primary">delete</button>
+                                break;
+                        }
                     </td>
                 </tr>
             }

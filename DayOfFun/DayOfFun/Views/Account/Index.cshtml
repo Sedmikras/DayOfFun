@@ -1,0 +1,46 @@
+@model IEnumerable<DayOfFun.Model.User>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@Html.AntiForgeryToken()
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Register">Register</a>
+    <a asp-action="Login">Register</a>
+</p>
+<table class="table">
+    @Html.ValidationSummary(true, "", new {@class = "text-danger"})
+    @if (ViewBag.Message != null)
+    {
+        <div class="form-group">
+            <div class="col-md-10">@ViewBag.Message</div>
+        </div>
+    }
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Username)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Email)
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Username)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -10,6 +10,8 @@ public interface IUserService
 
     void addUser();
 
+    public User getUserFromSession(ISession session);
+
     User updateUser(int id, User newUser);
 
     void Delete();

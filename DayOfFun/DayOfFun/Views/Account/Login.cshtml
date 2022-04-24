@@ -1,31 +1,40 @@
-﻿@model DayOfFun.Model.User
+@model DayOfFun.Model.User
 
 @{
     ViewData["Title"] = "Login";
-    ViewBag.Title = "Day of fun";
-    Layout = "_AuthLayout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@Html.AntiForgeryToken()
 
-<div class="row loginForm">
-    <div class="col-md-8 col-md-offset-2">
-        <h2>Please log in before placing an order.</h2>
-        <form asp-controller="Account" asp-action="Login" method="post" class="form-horizontal" role="form">
-            <h4>Enter your details below</h4>
-            <hr />
-            
+<h1>Login</h1>
+
+<h4>User</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Login">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="PasswordHash" class="col-md-2 control-label"></label>
-                <div class="col-md-10">
-                    <input asp-for="PasswordHash" class="form-control" />
-                    <span asp-validation-for="PasswordHash" class="text-danger"></span>
-                </div>
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
-
-            <div class="form-group pull-right formPullRightButton">
-                <div class="col-md-offset-2 col-md-10">
-                    <input type="submit" class="btn btn-success" value="Log in" />
-                </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Login" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
