@@ -6,6 +6,7 @@ using WebApplication1.managers;
 
 namespace DayOfFun.Data.Services;
 
+//TODO big rework here needed
 public class QuizService : IQuizService
 {
     private readonly ApplicationDbContext _context;
@@ -28,16 +29,22 @@ public class QuizService : IQuizService
         quiz.Owner = u;
         quiz.OwnerId = u.Id;
         _context.Quizzes.Add(quiz);
+        quiz.Users.Add(u);
         _context.SaveChanges();
-
         _context.Quizzes_Users.Add(new Quizzes_Users() {userId = u.Id, user = u, quizId = quiz.Id, quiz = quiz});
-        foreach (var question in quiz.ViewCollection)
+        List<Question> withoutDuplicities; 
+        _questionService.removeDuplicities(quiz, out withoutDuplicities);
+        foreach (var question in withoutDuplicities)
         {
             _questionService.AddQuestionForQuiz(question, quiz);
         }
 
-        quiz.State = ValidateState(quiz);
         _context.SaveChanges();
+        State state = ValidateState(quiz);
+        if (quiz.State != state)
+        {
+            _context.SaveChanges();
+        }
     }
 
     public List<Quiz> getQuizzesForUser(User user)
@@ -83,8 +90,18 @@ public class QuizService : IQuizService
     {
         User currentUser = _userService.getUserByID(model.UserId);
         //save answers
-        _context.Answers.UpdateRange(model.QuestionAnswers);
-
+        foreach (var ans in model.QuestionAnswers)
+        {
+            if (_context.Answers.Where(a =>
+                    a.QuestionId == ans.QuestionId && a.QuizId == ans.QuizId && a.UserId == ans.UserId).Any())
+            {
+                _context.Answers.Update(ans);
+            }
+            else
+            {
+                _context.Answers.Add(ans);
+            }
+        }
         _context.SaveChanges();
         Quiz update;
         if (ValidateQuiz(model, currentUser, out update))
@@ -97,6 +114,14 @@ public class QuizService : IQuizService
         _context.SaveChanges();
         return;
         //throw new NotImplementedException();
+    }
+
+    public bool getQuizById(int quizId, ISession session, out Quiz quiz)
+    {
+        quiz = _context.Quizzes.Where(q => q.Id == quizId).First();
+        User u = _userService.getUserFromSession(session);
+        List<Question> questions = _questionService.getQuestionsForQuizAndUser(quiz, u);
+        quiz.Questions = questions;
     }
 
     private bool ValidateQuiz(Quiz_Answer_Model model, User user, out Quiz quizResult)

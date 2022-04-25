@@ -77,11 +77,17 @@ namespace DayOfFun.Controllers
                 return View(model);
             }
         }
-
-        /*[HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        
+        public IActionResult Share()
         {
-            return null;
-        }*/
+            throw new NotImplementedException();
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            Quiz quiz = _quizService.getQuizById(id);
+            quiz.ViewCollection.Add(new Question());
+            return View(quiz);
+        }
     }
 }

@@ -24,5 +24,15 @@ namespace DayOfFun.Model
             this.Text = "DEFAULT";
             this.Enabled = true;
         }
+
+        public override bool Equals(object? obj)
+        {
+            return ((Question) obj).Text == Text;
+        }
+
+        public override int GetHashCode()
+        {
+            return Text.GetHashCode();
+        }
     }
 }

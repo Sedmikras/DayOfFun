@@ -17,3 +17,8 @@ body {
   margin-bottom: 60px;
   font-family: "Roboto", sans-serif;
 }
+
+.modal-content {
+  height: 500px;
+  width: 500px;
+}

@@ -33,12 +33,15 @@
                                 <a asp-controller="Quiz" asp-action="Fill" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>fill</a>
                                 break;
                             case State.WAITING: 
-                                <button class="btn btn-primary" asp-action="Share" asp-controller="Quiz"> share </button>
+                                <button class="btn btn-primary" onclick="showModal()"> share </button>
                                 <button class="btn btn-primary" asp-action="Fill" asp-controller="Quiz"> fill </button>
                                 break;
                             case State.FINISHED:
+                                <button class="btn btn-primary" onclick="showModal()"> share </button>
                                 <button class="btn btn-primary">view results</button>
+                                <button class="btn btn-primary">view detail</button>
                                 <button class="btn btn-primary">delete</button>
+                                                               
                                 break;
                         }
                     </td>
@@ -47,13 +50,25 @@
             </tbody>
         </table>
     </div>
+    <div class="modal fade d-none" id="popup" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    TEXTE TEXT TEXT
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="text-white">
         <a asp-controller="Quiz" asp-action="Create" class="btn btn-success"><i class="bi bi-plus-circle"></i>Add-new</a>
     </div>
 </div>
-
-@*Define model*@
-@*Define ViewData*@
-
-@*Write code*@
-<h1>Text</h1>
+@section Scripts
+{
+    <script>
+        function showModal() {
+            var popup = document.getElementById("popup");
+            popup.classList.remove("d-none");
+        };  
+    </script>
+}
