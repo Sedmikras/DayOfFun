@@ -1,4 +1,5 @@
-﻿using DayOfFun.Data.Services.Contract;
+﻿using Castle.Core.Internal;
+using DayOfFun.Data.Services.Contract;
 using DayOfFun.Model;
 using DayOfFun.Models;
 using SQLitePCL;
@@ -16,7 +17,7 @@ public class QuestionService : IQuestionService
         _logger = logger;
     }
 
-    public void AddQuestionForQuiz(Question appendedQuestion, Quiz quiz)
+    /*public void AddQuestionForQuiz(Question appendedQuestion, Quiz quiz)
     {
         if (quiz.Id == 0)
         {
@@ -46,6 +47,29 @@ public class QuestionService : IQuestionService
         _context.SaveChanges();
     }
 
+    public bool AddQuestionsForQuiz(Quiz quiz)
+    {
+        var removedDuplicates = quiz.ViewCollection.Distinct().ToList();
+        foreach (var question in removedDuplicates)
+        {
+            quiz.Questions.Add(question);
+            Question q = _context.Questions.Where(q => q.Id == question.Id).FirstOrDefault();
+            if (q == null)
+            {
+                _context.Questions.Add(question);
+                _context.SaveChanges();
+            }
+
+            _context.Quizzes_Questions.Add(new Quizzes_Quesitons()
+            {
+                quesitonId = question.Id,
+                QuizID = quiz.Id
+            });
+        }
+
+        return true;
+    }
+
     public List<Question> getQuestionsForQuizAndUser(Quiz quiz, User user)
     {
         List<Quizzes_Quesitons> relationTable = _context.Quizzes_Questions.Where(qq => qq.QuizID == quiz.Id).ToList();
@@ -58,5 +82,24 @@ public class QuestionService : IQuestionService
         }
 
         return questions;
+    }*/
+    public void AddQuestionForQuiz(Question question, Quiz quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool AddQuestionsForQuiz(Quiz quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<Question> getQuestionsForQuizAndUser(Quiz quiz, User user)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void removeDuplicities(Quiz quiz, out List<Question> questions)
+    {
+        throw new NotImplementedException();
     }
 }

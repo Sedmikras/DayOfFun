@@ -17,12 +17,11 @@ namespace DayOfFun.Model
 
         public String? Tags { get; set; }
 
-        [NotMapped] public virtual ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
+        public virtual ICollection<Quiz> Quizzes { get; set; }
 
         public Question()
         {
-            this.Text = "DEFAULT";
-            this.Enabled = true;
+            Quizzes = new HashSet<Quiz>();
         }
 
         public override bool Equals(object? obj)

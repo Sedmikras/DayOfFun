@@ -1,0 +1,26 @@
+﻿@model DayOfFun.Models.View.QuizDetailsModel
+
+@{
+    ViewBag.Title = "title";
+    Layout = "_Layout";
+}
+
+<h2>@Model.Title</h2>
+@foreach (var qdm in Model.Answers)
+{
+    <div class="row">
+        @if (qdm.Value.IsDoable)
+        {
+            <div class="col-9">
+                @qdm.Key
+            </div>
+            /*TODO debug*/
+            <div class="col-1">
+                @qdm.Value.Score
+            </div>
+            <div class="col-1">
+                @qdm.Value.Respondents
+            </div>
+        }
+    </div>
+}

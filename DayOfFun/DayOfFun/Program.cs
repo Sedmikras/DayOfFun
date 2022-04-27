@@ -1,6 +1,7 @@
 using DayOfFun.Data;
 using DayOfFun.Data.Services;
 using DayOfFun.Data.Services.Contract;
+using DayOfFun.managers;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.managers;
 
@@ -19,7 +20,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
-builder.Services.AddScoped<QuizManager>();
+builder.Services.AddScoped<ApplicationManager>();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDistributedMemoryCache();

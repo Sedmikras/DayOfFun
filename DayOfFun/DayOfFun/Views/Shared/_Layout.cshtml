@@ -9,9 +9,12 @@
     <link rel="stylesheet" href="~/DayOfFun.styles.css" asp-append-version="true"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swal" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/toastr/content/toastr.css" />
 </head>
 <body>
 <header>
+    <span id="errorMessage" class="d-none">@TempData["errorMessage"]</span>
+    <span id="successMessage" class="d-none">@TempData["successMessage"]</span>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
         <div class="container-fluid">
             <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DayOfFun</a>
@@ -45,6 +48,7 @@
 </footer>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/toastr/scripts/toastr.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

@@ -1,18 +1,22 @@
 ﻿using DayOfFun.Data;
+using DayOfFun.Data.Services.Contract;
 using DayOfFun.Model;
+using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace DayOfFun.Controllers;
 
 public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IUserService _userService;
 
-    public AccountController(ApplicationDbContext context)
+    public AccountController(ApplicationDbContext context, IUserService service)
     {
         _context = context;
+        _userService = service;
     }
+
     public ActionResult Index()
     {
         return View(_context.Users.ToList());
@@ -24,30 +28,28 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    public ActionResult Register(User userModel)
+    public ActionResult Register(UserViewModel userModel)
     {
         if (ModelState.IsValid)
         {
             if (userModel.Password != userModel.ConfirmPassword)
             {
+                TempData["errorMessage"] = "failed to register";
                 ModelState.AddModelError("", "Passwords does not match");
                 return View();
             }
 
-            if (_context.Users.Where(user => user.Email == userModel.Email).FirstOrDefault() == null)
+            User user;
+            if (!_userService.RegisterUser(userModel, out user))
             {
-                _context.Users.Add(userModel);
-                _context.SaveChanges();
-                ModelState.Clear();
-                ViewBag.Message = userModel.Username + " with email [" + userModel.Email + "] succesfully registered";
-            }
-            else
-            {
-                ModelState.AddModelError("","User with email [" + userModel.Email + "] already exists!");
+                TempData["errorMessage"] = "user with email already exists";
+                ModelState.AddModelError("", "Cannot register user with email " + userModel.Email);
+                return View();
             }
         }
 
-        return View();
+        TempData["successMessage"] = "successfully registered";
+        return RedirectToAction(nameof(Login));
     }
 
     public ActionResult Login()
@@ -56,11 +58,10 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    public ActionResult Login(User userModel)
+    public ActionResult Login(UserViewModel userModel)
     {
         if (userModel.Password != null && userModel.Email != null)
         {
-            
             //check user
             User u = _context.Users.Where(user => user.Email == userModel.Email).FirstOrDefault();
             if (u.Password != userModel.Password)
@@ -73,7 +74,8 @@ public class AccountController : Controller
                 HttpContext.Session.SetString("UserId", u.Id.ToString());
                 HttpContext.Session.SetString("Username", u.Username);
                 HttpContext.Session.SetString("Email", u.Email);
-                return RedirectToAction("LoggedIn");
+                TempData["successMessage"] = "Welcome back " + u.Username;
+                return RedirectToAction("Index", "Quiz");
             }
         }
         else
@@ -83,17 +85,4 @@ public class AccountController : Controller
 
         return View();
     }
-
-    public ActionResult LoggedIn()
-    {
-        if (HttpContext.Session.GetString("UserId") != null)
-        {
-            return View();
-        }
-        else
-        {
-            return RedirectToAction("Login");
-        }
-    }
-
 }

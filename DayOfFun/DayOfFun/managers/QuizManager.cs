@@ -4,16 +4,16 @@ namespace WebApplication1.managers;
 
 public class QuizManager
 {
-    private List<Quiz> quizzes;
+    /*private List<Quiz> quizzes;
 
-    public void resolveChanges(Quiz update)
+    public void resolveChanges(ApplicaitonQuiz update)
     {
-        /*TODO get quiz from DB*/
+        /*TODO get quiz from DB#1#
         if (quizzes.Find(q => q.Id == update.Id) != null)
         {
             if (update.isValid() && (update.State == State.PREPARED || update.State == State.WAITING))
             {
-                /*TODO - update quiz and save results*/
+                /*TODO - update quiz and save results#1#
             }
         }
         else
@@ -21,6 +21,6 @@ public class QuizManager
             if(update.isValid());
                 quizzes.Add(update);
         }
-    }
+    }*/
 
 }

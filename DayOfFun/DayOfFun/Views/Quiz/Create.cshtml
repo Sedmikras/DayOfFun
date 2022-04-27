@@ -1,4 +1,5 @@
-﻿@model DayOfFun.Model.Quiz
+﻿@using DayOfFun.Model
+@model DayOfFun.Models.View.QuizCreateViewModel
 
 @{
     ViewData["Title"] = "Create new quiz";
@@ -15,7 +16,7 @@
         <div class="row">
             <div class="col-md-8 offset-2">
                 <form asp-action="Create">
-                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                    @Html.ValidationSummary(false, "", new {@class = "text-danger"})
                     <div class="form-group mb-3">
                         <label asp-for="Title" class="control-label"></label>
                         <input asp-for="Title" class="form-control"/>
@@ -23,21 +24,21 @@
                     </div>
                     <div class="form-group mb-3">
                         <div id="questions">
-                            @for (int i = 0; i < Model.ViewCollection.Count; i++)
+                            @for (int i = 0; i < Model.questions.Count; i++)
                             {
                                 <div id="question_@i" class="row mb-3">
                                     <div class="col-8">
-                                        @Html.EditorFor(q => q.ViewCollection[i].Text)
+                                        @Html.EditorFor(q => q.questions[i].Text)
                                     </div>
                                     <div class="col-4">
                                         <button id="btnremove" type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(this)">Delete</button>
                                     </div>
-                                    <span asp-validation-for="ViewCollection[i].Text" class="text-danger"></span>
+                                    <span asp-validation-for="questions[i].Text" class="text-danger"></span>
                                 </div>
                                 <br/>
                             }
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-8"></div>
                             <div class="col-4">
@@ -58,7 +59,7 @@
 
 @section Scripts
 {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
         function addQuestion(btn) {
             // prepare ID

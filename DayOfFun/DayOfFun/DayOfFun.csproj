@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-DayOfFun-3D5A4E05-EE07-464D-AD6A-237D03175CDB</UserSecretsId>
+        <IsPackable>true</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,6 +24,7 @@
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.3" />
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore" Version="6.0.3" />
         <PackageReference Include="NUnit" Version="3.13.3" />
+        <PackageReference Include="toastr" Version="2.1.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,6 +35,10 @@
       <_ContentIncludedByDefault Remove="Views\Account\_LoginPartial.cshtml" />
       <_ContentIncludedByDefault Remove="Areas\Identity\Pages\_ValidationScriptsPartial.cshtml" />
       <_ContentIncludedByDefault Remove="Areas\Identity\Pages\_ViewStart.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\lib\toastr" />
     </ItemGroup>
 
 </Project>

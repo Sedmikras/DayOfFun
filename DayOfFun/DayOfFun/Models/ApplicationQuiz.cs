@@ -4,36 +4,24 @@ using DayOfFun.Models;
 
 namespace DayOfFun.Model
 {
-    public enum State
-    {
-        CREATED,
-        PREPARED,
-        DONE,
-        WAITING,
-        FINISHED,
-        ARCHIVED,
-        INVALID
-    }
-
-    public class Quiz
+    public class ApplicaitonQuiz
     {
         [Key] public int Id { get; set; }
 
         [Display(Name = "Quiz title")]
         [Required(ErrorMessage = "Quiz title is required")]
-        [StringLength(255, MinimumLength = 1, ErrorMessage ="Title must be between 1 and 255 chars")]
+        [StringLength(255, MinimumLength = 1, ErrorMessage = "Title must be between 1 and 255 chars")]
 
-    public String Title { get; set; }
+        public String Title { get; set; }
+
         public State State { get; set; }
-        
+
         public String? Tags;
 
         //RELATIONSHIPS
         public int OwnerId { get; set; }
 
-        [ForeignKey("OwnerId")]
-        [Column]
-        public User Owner;
+        [ForeignKey("OwnerId")] [Column] public User Owner;
 
         public virtual HashSet<User>? WaitingUsers { get; set; } = new HashSet<User>();
 
@@ -47,11 +35,11 @@ namespace DayOfFun.Model
         [NotMapped] public List<Question> ViewCollection { get; set; } = new List<Question>();
 
         // private attributes
-        private List<Question>? _questions;
+        private List<Question>? _questions = new List<Question>();
 
         private Dictionary<Question, HashSet<Answer>> resultset = new Dictionary<Question, HashSet<Answer>>();
 
-        public Quiz()
+        public ApplicaitonQuiz()
         {
             this.Title = "UKNOWN";
             this.State = State.CREATED;
@@ -216,6 +204,10 @@ namespace DayOfFun.Model
             {
                 throw new Exception();
             }
+        }
+
+        public void SetUsers(List<Quizzes_Users> qus)
+        {
         }
     }
 }

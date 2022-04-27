@@ -1,4 +1,4 @@
-@model DayOfFun.Model.User
+@model DayOfFun.Models.View.UserViewModel
 
 @{
     ViewData["Title"] = "Register";
@@ -35,7 +35,8 @@
                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Register" class="btn btn-primary" />
+                <button class="btn btn-secondary" onclick="checkToaster()">try toastr</button>
+                <input type="submit" value="Register" class="btn btn-primary"/>
             </div>
         </form>
     </div>
@@ -45,6 +46,3 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

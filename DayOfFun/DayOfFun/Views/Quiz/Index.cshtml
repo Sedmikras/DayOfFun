@@ -1,5 +1,5 @@
 ﻿@using DayOfFun.Model
-@model IEnumerable<DayOfFun.Model.Quiz>
+@model IEnumerable<DayOfFun.BeginCollectionItemCore.Models.QuizViewModel>
 
 @{
     ViewData["title"] = "List of quizes";
@@ -8,13 +8,13 @@
 <div class="row">
     <div class="col-md-8 offset-md-2">
         <table class="table">
-            <thead>
+            @*<thead>
             <tr>
                 <th>@Html.DisplayNameFor(model => model.Title)</th>
                 <th>@Html.DisplayNameFor(model => model.State)</th>
                 <th>Actions</th>
             </tr>
-            </thead>
+            </thead>*@
             <tbody>
             @foreach (var quiz in Model)
             {
@@ -26,10 +26,12 @@
                         {
                             case State.CREATED: 
                                 <a asp-controller="Quiz" asp-action="Delete" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>delete</a>
-                                <a asp-controller="Quiz" asp-action="Share" class="btn btn-primary"><i class="bi bi-plus-circle"></i>share</a>
+                                <a asp-controller="Quiz" asp-action="Share" asp-route-quizId="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>share</a>
                                 <a asp-controller="Quiz" asp-action="Edit" class="btn btn-primary"><i class="bi bi-plus-circle"></i>Add questions</a>
                                 break;
                             case State.PREPARED:
+                                <a asp-controller="Quiz" asp-action="Delete" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>delete</a>
+                                <a asp-controller="Quiz" asp-action="Share" asp-route-quizId="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>share</a>
                                 <a asp-controller="Quiz" asp-action="Fill" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>fill</a>
                                 break;
                             case State.WAITING: 
@@ -38,9 +40,9 @@
                                 break;
                             case State.FINISHED:
                                 <button class="btn btn-primary" onclick="showModal()"> share </button>
-                                <button class="btn btn-primary">view results</button>
+                                <a asp-controller="Quiz" asp-action="Details" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>view results</a>
                                 <button class="btn btn-primary">view detail</button>
-                                <button class="btn btn-primary">delete</button>
+                                <a asp-controller="Quiz" asp-action="Delete" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>delete</a>
                                                                
                                 break;
                         }

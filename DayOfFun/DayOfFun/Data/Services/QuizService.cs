@@ -1,8 +1,8 @@
-﻿using DayOfFun.Data.Services.Contract;
+﻿using Castle.Core;
+using DayOfFun.BeginCollectionItemCore.Models;
+using DayOfFun.Data.Services.Contract;
 using DayOfFun.Model;
-using DayOfFun.Models;
 using DayOfFun.Models.Domain;
-using WebApplication1.managers;
 
 namespace DayOfFun.Data.Services;
 
@@ -12,15 +12,97 @@ public class QuizService : IQuizService
     private readonly ApplicationDbContext _context;
     private readonly IQuestionService _questionService;
     private readonly IUserService _userService;
-    private readonly QuizManager _quizManager;
 
-    public QuizService(ApplicationDbContext context, IQuestionService questionService, IUserService userService,
-        QuizManager quizManager)
+    public static ILogger _logger =
+        LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(typeof(IQuizService));
+
+    public QuizService(ApplicationDbContext context, IQuestionService questionService, IUserService userService)
     {
         _context = context;
         _questionService = questionService;
         _userService = userService;
-        _quizManager = quizManager;
+    } /*
+
+    public bool Add(Quiz quiz, User user)
+    {
+        if (quiz.State != State.CREATED)
+        {
+            _logger.LogError("Quiz with name {Title}, owner {Owner}, Is not in valid state", quiz.Title, quiz.OwnerId);
+            return false;
+        }
+
+        quiz.Owner = user;
+        quiz.OwnerId = user.Id;
+        //TODO check duplicates ?
+        _context.Quizzes.Add(quiz);
+        _context.SaveChanges();
+        _context.Quizzes_Users.Add(new Quizzes_Users()
+        {
+            quizId = quiz.Id,
+            userId = user.Id
+        });
+        return true;
+    }
+
+    public bool Update(Quiz quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Delete(int quizId, User u)
+    {
+        Quiz quiz;
+        Read(quizId, out quiz);
+        /*if (!quiz.isValid())
+        {
+            return false;
+        }#1#
+
+        List<Quizzes_Users> qus = _context.Quizzes_Users.Where(qu => qu.userId == u.Id).ToList();
+        foreach (var qu in qus)
+        {
+            _context.Question_Users.Remove(qu);
+        }
+
+        List<Quizzes_Quesitons> qqs = _context.Quizzes_Questions.Where(qq => qq.QuizID == quizId).ToList();
+        foreach (var qq in qqs)
+        {
+            _context.Quizzes_Questions.Remove(qq);
+        }
+
+        _context.Quizzes.Remove(_context.Quizzes.Find(quiz.Id));
+        _context.SaveChangesAsync();
+        return true;
+    }
+
+    public bool Delete(Quiz quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Read(int quizId, out Quiz quiz)
+    {
+        quiz = _context.Quizzes.Where(q => q.Id == quizId).FirstOrDefault();
+        List<Quizzes_Users> qus = _context.Question_Users.Where(qu => qu.quizId == quizId).ToList();
+        HashSet<User> users = new HashSet<User>();
+        foreach (var qu in qus)
+        {
+            users.Add(_context.Users.Where(u => u.Id == qu.userId).FirstOrDefault());
+        }
+        List<Quizzes_Quesitons> qqs = _context.Quizzes_Questions.Where(qqs => qqs.QuizID == quizId).ToList();
+        List<Question> questions = new List<Question>();
+        foreach (var qq in qqs)
+        {
+               questions.Add(_context.Questions.Where(q => q.Id == qq.quesitonId).FirstOrDefault());
+        }
+        quiz.Users = users;
+        quiz.Questions = questions;
+        return true;
+    }
+
+    public bool ReadAllForUser(int userId, out List<Quiz> quizzes)
+    {
+        throw new NotImplementedException();
     }
 
     public void AddQuiz(Quiz quiz, ISession Session)
@@ -32,7 +114,7 @@ public class QuizService : IQuizService
         quiz.Users.Add(u);
         _context.SaveChanges();
         _context.Quizzes_Users.Add(new Quizzes_Users() {userId = u.Id, user = u, quizId = quiz.Id, quiz = quiz});
-        List<Question> withoutDuplicities; 
+        List<Question> withoutDuplicities;
         _questionService.removeDuplicities(quiz, out withoutDuplicities);
         foreach (var question in withoutDuplicities)
         {
@@ -78,7 +160,8 @@ public class QuizService : IQuizService
 
     public Quiz_Answer_Model getQuestionsFor(ISession session, int id)
     {
-        User u = _userService.getUserFromSession(session);
+        User u;
+        _userService.getUserFromSession(session, out u);
         Quiz quiz = _context.Quizzes.Where(quiz => quiz.Id == id).First();
         List<Question> questions = _questionService.getQuestionsForQuizAndUser(quiz, u);
         quiz.Questions.AddRange(questions);
@@ -102,6 +185,7 @@ public class QuizService : IQuizService
                 _context.Answers.Add(ans);
             }
         }
+
         _context.SaveChanges();
         Quiz update;
         if (ValidateQuiz(model, currentUser, out update))
@@ -116,12 +200,22 @@ public class QuizService : IQuizService
         //throw new NotImplementedException();
     }
 
+    public Quiz getQuizById(int quizId)
+    {
+        throw new NotImplementedException();
+        return null;
+    }
+
     public bool getQuizById(int quizId, ISession session, out Quiz quiz)
     {
-        quiz = _context.Quizzes.Where(q => q.Id == quizId).First();
-        User u = _userService.getUserFromSession(session);
-        List<Question> questions = _questionService.getQuestionsForQuizAndUser(quiz, u);
-        quiz.Questions = questions;
+        {
+            quiz = _context.Quizzes.Where(q => q.Id == quizId).First();
+            User u;
+            _userService.getUserFromSession(session, out u);
+            List<Question> questions = _questionService.getQuestionsForQuizAndUser(quiz, u);
+            quiz.Questions = questions;
+            return true;
+        }
     }
 
     private bool ValidateQuiz(Quiz_Answer_Model model, User user, out Quiz quizResult)
@@ -147,7 +241,7 @@ public class QuizService : IQuizService
             {
                 updateAnswers(quiz, model.QuestionAnswers);
             }
-            break;
+                break;
             // check results
             case State.FINISHED: break;
         }
@@ -199,7 +293,8 @@ public class QuizService : IQuizService
         foreach (var answer in answers)
         {
             var dbAnswer = _context.Answers.Where(a =>
-                a.QuizId == answer.QuizId && a.UserId == answer.UserId && a.QuestionId == answer.QuestionId).First();
+                    a.QuizId == answer.QuizId && a.UserId == answer.UserId && a.QuestionId == answer.QuestionId)
+                .First();
             if (dbAnswer != null)
             {
                 dbAnswer.Result = answer.Result;
@@ -240,5 +335,103 @@ public class QuizService : IQuizService
         }
 
         return State.INVALID;
+    }*/
+
+    public bool Add(Quiz quiz, User user)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Update(Quiz quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Delete(int quizId, User u)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Delete(Quiz quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool Read(int quizId, out Quiz quiz)
+    {
+        quiz = _context.Quizzes.Where(q => q.Id == quizId).FirstOrDefault();
+        if (quiz == null)
+            return false;
+        return true;
+    }
+
+    public List<QuizViewModel> GetQuizzesModel(ISession session)
+    {
+        
+        User u = _context.Users.Where(u => u.Id == Int32.Parse(session.GetString("UserId"))).FirstOrDefault();
+        if (u == null)
+        {
+            _logger.LogError("Couldn't read user from database");
+            return null;
+        }
+
+        List<QuizViewModel> qvm = new List<QuizViewModel>();
+        foreach (var q in u.Quizzes)
+        {
+            qvm.Add(q.ToViewModel());
+        }
+
+        return qvm;
+    }
+
+    public bool ReadAllForUser(int userId, out List<Quiz> quizzes)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddQuiz(Quiz quiz, ISession session)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<Quiz> getQuizzesForUser(User user)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Delete(ISession httpContextSession, int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public QuizAnswerModel getQuestionsFor(ISession httpContextSession, int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void ValidateModel(Quiz quiz)
+    {
+        List<Answer> answers = _context.Answers.Where(a => a.QuizId == quiz.Id).ToList();
+        var numberOfAnswers = answers.Count;
+        var numberOfQuestions = quiz.Questions.Count;
+        var numberOfUsers = quiz.Users.Count;
+        if (numberOfUsers == 0)
+        {
+            quiz.State = State.INVALID;
+            return;
+        }
+
+        if (numberOfQuestions == 0)
+        {
+            quiz.State = State.CREATED;
+            return;
+        }
+        quiz.State = numberOfAnswers == numberOfQuestions * numberOfUsers ? State.FINISHED : State.WAITING;
+        return;
+    }
+
+    public Quiz getQuizById(int quizId)
+    {
+        throw new NotImplementedException();
     }
 }

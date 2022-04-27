@@ -1,75 +1,62 @@
-using DayOfFun.Data.Services.Contract;
+using System.Security.Cryptography;
+using System.Text;
+using DayOfFun.managers;
 using DayOfFun.Model;
 using DayOfFun.Models.Domain;
+using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace DayOfFun.Controllers
 {
     public class QuizController : Controller
     {
-        private readonly IUserService _service;
-        private readonly IQuizService _quizService;
+        private readonly ApplicationManager _applicationManager;
 
-        public QuizController(IUserService service, IQuizService quizService)
+        public QuizController(ApplicationManager applicationManager)
         {
-            _service = service;
-            _quizService = quizService;
+            _applicationManager = applicationManager;
         }
 
         public IActionResult Index()
         {
-            var data = _quizService.getQuizzesForUser(_service.getUserFromSession(HttpContext.Session));
+            var data = _applicationManager.GetQuizzesForUser(HttpContext.Session);
             return View(data);
         }
 
         public async Task<IActionResult> Create()
         {
-            Quiz quiz = new Quiz();
-            quiz.ViewCollection.Add(new Question());
-            return View(quiz);
+            QuizCreateViewModel qvm = new QuizCreateViewModel();
+            qvm.questions.Add(new Question());
+            return View(qvm);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Quiz quiz)
+        public async Task<IActionResult> Create(QuizCreateViewModel quiz)
         {
-            foreach (var question in quiz.ViewCollection)
-            {
-                question.Quizzes.Append(quiz);
-            }
-
-            User currentUser = _service.getUserFromSession(HttpContext.Session);
-            quiz.Users.Append(currentUser);
-            
-            ModelState.Clear();
-            TryValidateModel(quiz);
-            
-            if (!ModelState.IsValid)
-            {
-                return View(quiz);
-            }
-            
-            _quizService.AddQuiz(quiz, HttpContext.Session);
+            _applicationManager.CreateQuiz(HttpContext.Session, quiz);
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Delete(int id)
         {
-            _quizService.Delete(HttpContext.Session,id);
+            _applicationManager.DeleteQuiz(HttpContext.Session,id);
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Fill(int id)
         {
-            Quiz_Answer_Model model = _quizService.getQuestionsFor(HttpContext.Session, id);
-            return View(model);
+            QuizAnswerModel qam =_applicationManager.GetQuizFillModel(HttpContext.Session, id);
+            return View(qam);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Fill(Quiz_Answer_Model model)
+        public async Task<IActionResult> Fill(QuizAnswerModel model)
         {
             if (ModelState.IsValid)
             {
-                _quizService.ValidateModel(model);
+                TempData["successMessage"] = "Quiz successfully filled. Thank you.";
+                _applicationManager.UpdateQuiz(HttpContext.Session, model);
                 return RedirectToAction(nameof(Index));
             }
             else
@@ -78,16 +65,35 @@ namespace DayOfFun.Controllers
             }
         }
         
-        public IActionResult Share()
+        public IActionResult Share(int quizId)
         {
+            String email = "Langmajerova.Barbora@gmail.com";
+            email.ToLower();
+            _applicationManager.Share(HttpContext.Session, email);
+            /*byte[] hash;
+            using (MD5 md5 = MD5.Create())
+            {
+                md5.Initialize();
+                md5.ComputeHash(Encoding.UTF8.GetBytes(email));
+                hash = md5.Hash;
+            }
+
+            var str = System.Text.Encoding.UTF8.GetString(hash);*/
+            String adress = "\\public\\fill\\" + quizId + "?email=" + email;
             throw new NotImplementedException();
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            Quiz quiz = _quizService.getQuizById(id);
-            quiz.ViewCollection.Add(new Question());
-            return View(quiz);
+            //Quiz quiz = _quizService.getQuizById(id);
+            //quiz.ViewCollection.Add(new Question());
+            return View();
+        }
+        
+        public async Task<IActionResult> Details(int id)
+        {
+            QuizDetailsModel qdm =_applicationManager.GetQuizDetailsModel(HttpContext.Session, id);
+            return View(qdm);
         }
     }
 }
