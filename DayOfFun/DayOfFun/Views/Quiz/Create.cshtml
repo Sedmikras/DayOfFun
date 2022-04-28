@@ -28,7 +28,8 @@
                             {
                                 <div id="question_@i" class="row mb-3">
                                     <div class="col-8">
-                                        @Html.EditorFor(q => q.questions[i].Text)
+                                        @Html.TextBoxFor(m => m.questions[i].Text, new { @class = "searchBox", @id = "azureautosuggest" }) <input value="" class="searchBoxSubmit" type="submit">
+                                        @*@Html.EditorFor(q => q.questions[i].Text)*@
                                     </div>
                                     <div class="col-4">
                                         <button id="btnremove" type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(this)">Delete</button>
@@ -61,6 +62,19 @@
 {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
+        $(document).ready( function ()
+            { 
+                debugger;
+            $("#azureautosuggest").autocomplete({
+                source: "/Quiz/SuggestAsync?highlights=false&fuzzy=false",
+                minLength: 2,
+                position: {
+                    my: "left top",
+                    at: "left-23 bottom+10"
+                }
+            })
+        });
+        
         function addQuestion(btn) {
             // prepare ID
             var idElement = document.getElementById("lastIndex")

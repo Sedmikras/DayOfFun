@@ -1,17 +1,22 @@
-using System.Security.Cryptography;
-using System.Text;
+using Azure;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Indexes;
 using DayOfFun.managers;
 using DayOfFun.Model;
 using DayOfFun.Models.Domain;
 using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Newtonsoft.Json;
 
 namespace DayOfFun.Controllers
 {
     public class QuizController : Controller
     {
         private readonly ApplicationManager _applicationManager;
+        private static SearchIndexClient _indexClient;
+        private static SearchClient _searchClient;
+        private static IConfigurationBuilder _builder;
+        private static IConfigurationRoot _configuration;
 
         public QuizController(ApplicationManager applicationManager)
         {
@@ -40,13 +45,13 @@ namespace DayOfFun.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            _applicationManager.DeleteQuiz(HttpContext.Session,id);
+            _applicationManager.DeleteQuiz(HttpContext.Session, id);
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Fill(int id)
         {
-            QuizAnswerModel qam =_applicationManager.GetQuizFillModel(HttpContext.Session, id);
+            QuizAnswerModel qam = _applicationManager.GetQuizFillModel(HttpContext.Session, id);
             return View(qam);
         }
 
@@ -64,7 +69,7 @@ namespace DayOfFun.Controllers
                 return View(model);
             }
         }
-        
+
         public IActionResult Share(int quizId)
         {
             String email = "Langmajerova.Barbora@gmail.com";
@@ -89,11 +94,40 @@ namespace DayOfFun.Controllers
             //quiz.ViewCollection.Add(new Question());
             return View();
         }
-        
+
         public async Task<IActionResult> Details(int id)
         {
-            QuizDetailsModel qdm =_applicationManager.GetQuizDetailsModel(HttpContext.Session, id);
+            QuizDetailsModel qdm = _applicationManager.GetQuizDetailsModel(HttpContext.Session, id);
             return View(qdm);
+        }
+
+        public async Task<IActionResult> Suggest(string term)
+        {
+            List<String> Question_Texts = await _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
+            // Convert the suggested query results to a list that can be displayed in the client.
+            string value = String.Empty;
+            value = JsonConvert.SerializeObject(Question_Texts, Formatting.Indented, new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
+
+            // Return the list of suggestions.
+            return new JsonResult(value);
+        }
+
+        private void InitSearch()
+        {
+            // Create a configuration using the appsettings file.
+            _builder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
+            _configuration = _builder.Build();
+
+            // Pull the values from the appsettings.json file.
+            string searchServiceUri = _configuration["SearchServiceUri"];
+            string queryApiKey = _configuration["SearchServiceQueryApiKey"];
+
+            // Create a service and index client.
+            _indexClient = new SearchIndexClient(new Uri(searchServiceUri), new AzureKeyCredential(queryApiKey));
+            _searchClient = _indexClient.GetSearchClient("hotels-sample-index");
         }
     }
 }

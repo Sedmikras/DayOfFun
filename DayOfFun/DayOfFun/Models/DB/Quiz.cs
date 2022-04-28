@@ -70,13 +70,15 @@ namespace DayOfFun.Model
             };
         }
 
-        public QuizAnswerModel ToAnswerModel(User u)
+        public QuizAnswerModel ToAnswerModel(User u, List<Answer> answers)
         {
             var actualQuestions = this.Questions.Select(question => new AnswerView()
                 {
                     QuizId = this.Id,
                     QuestionId = question.Id,
                     UserId = u.Id,
+                    Result = answers.Exists(a => a.QuestionId == question.Id) 
+                        ? answers.First(a => a.QuestionId == question.Id).Result : Result.NO
                 })
                 .ToList();
             return new QuizAnswerModel()
@@ -88,6 +90,8 @@ namespace DayOfFun.Model
                 QuestionAnswers = actualQuestions
             };
         }
+        
+        
 
         public List<Answer> AddAnswers(List<AnswerView> view, User u)
         {

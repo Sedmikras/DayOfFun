@@ -72,7 +72,7 @@ public class ApplicationManager
         return true;
     }
 
-    public QuizAnswerModel GetQuizFillModel(ISession session, int quizId)
+    public QuizAnswerModel GetQuizFillModel(ISession session, int quizId, List<Answer> answers)
     {
         User user;
         if (!_userService.getUserFromSession(session, out user))
@@ -85,17 +85,31 @@ public class ApplicationManager
         {
             throw new Exception();
         }
-        return quiz.ToAnswerModel(user);
+
+        return quiz.ToAnswerModel(user, answers);
     }
-    
+
+    public QuizAnswerModel GetQuizFillModel(ISession session, int quizId)
+    {
+        User u;
+        if (!_userService.getUserFromSession(session, out u))
+        {
+            throw new Exception();
+        }
+
+        return GetQuizFillModel(u, quizId);
+    }
+
     public QuizAnswerModel GetQuizFillModel(User user, int quizId)
     {
         var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
+        var answers = _context.Answers.Where(a => a.QuizId == quizId && a.UserId == user.Id).ToList();
         if (quiz == null)
         {
             throw new Exception();
         }
-        return quiz.ToAnswerModel(user);
+
+        return quiz.ToAnswerModel(user, answers);
     }
 
     public State ValidateQuiz(Quiz quiz)
@@ -105,16 +119,9 @@ public class ApplicationManager
         return State.INVALID;
     }
 
-    public State UpdateQuiz(ISession session, QuizAnswerModel model)
+    public State UpdateQuiz(User u, QuizAnswerModel model)
     {
         var quizId = model.QuizId;
-        var userId = model.UserId;
-        User u;
-        if (!_userService.getUserFromSession(session, out u))
-        {
-            throw new Exception();
-        }
-
         Quiz quiz;
         if (!_quizService.Read(quizId, out quiz))
         {
@@ -142,7 +149,17 @@ public class ApplicationManager
         {
             return State.INVALID;
         }
+    }
 
+    public State UpdateQuiz(ISession session, QuizAnswerModel model)
+    {
+        User u;
+        if (!_userService.getUserFromSession(session, out u))
+        {
+            throw new Exception();
+        }
+
+        return UpdateQuiz(u, model);
     }
 
     public QuizDetailsModel GetQuizDetailsModel(ISession session, int quizId)

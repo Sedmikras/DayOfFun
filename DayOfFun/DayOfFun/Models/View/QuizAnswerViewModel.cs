@@ -12,6 +12,8 @@ public class QuizAnswerModel
 
     public string Title { get; set; }
 
+    private bool AlreadyFilled { get; set; } = false;
+
     public virtual List<Question> Questions { get; set; } = new List<Question>();
     public virtual List<AnswerView> QuestionAnswers { get; set; } = new List<AnswerView>();
 
