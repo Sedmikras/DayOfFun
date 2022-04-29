@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using DayOfFun.BeginCollectionItemCore.Models;
-using DayOfFun.Models.Domain;
 using DayOfFun.Models.View;
 using NuGet.Packaging;
 
-namespace DayOfFun.Model
+namespace DayOfFun.Models.DB
 {
     public enum State
     {
@@ -26,11 +24,11 @@ namespace DayOfFun.Model
         [Required(ErrorMessage = "Quiz title is required")]
         [StringLength(255, MinimumLength = 1, ErrorMessage = "Title must be between 1 and 255 chars")]
 
-        public String Title { get; set; }
+        public string Title { get; set; }
 
         public State State { get; set; }
 
-        public String? Tags;
+        public string? Tags;
 
         public int OwnerId { get; set; }
 
@@ -42,22 +40,22 @@ namespace DayOfFun.Model
 
         public Quiz()
         {
-            this.Users = new HashSet<User>();
-            this.Questions = new HashSet<Question>();
+            Questions = new HashSet<Question>();
+            Users = new HashSet<User>();
         }
 
         public Quiz(User u, QuizCreateViewModel qvm)
         {
-            this.Users = new HashSet<User>();
-            this.Questions = new HashSet<Question>();
-            if (qvm.questions.Count == 0)
-                this.State = State.CREATED;
-            this.State = State.PREPARED;
-            this.Questions.AddRange(qvm.questions);
-            this.Owner = u;
-            this.OwnerId = u.Id;
-            this.Title = qvm.Title;
-            this.Users.Add(u);
+            Users = new HashSet<User>();
+            Questions = new HashSet<Question>();
+            if (qvm.Questions.Count == 0)
+                State = State.CREATED;
+            State = State.PREPARED;
+            Questions.AddRange(qvm.Questions);
+            Owner = u;
+            OwnerId = u.Id;
+            Title = qvm.Title;
+            Users.Add(u);
         }
 
         public QuizViewModel ToViewModel()
@@ -77,8 +75,9 @@ namespace DayOfFun.Model
                     QuizId = this.Id,
                     QuestionId = question.Id,
                     UserId = u.Id,
-                    Result = answers.Exists(a => a.QuestionId == question.Id) 
-                        ? answers.First(a => a.QuestionId == question.Id).Result : Result.NO
+                    Result = answers.Exists(a => a.QuestionId == question.Id)
+                        ? answers.First(a => a.QuestionId == question.Id).Result
+                        : Result.NO
                 })
                 .ToList();
             return new QuizAnswerModel()
@@ -90,16 +89,20 @@ namespace DayOfFun.Model
                 QuestionAnswers = actualQuestions
             };
         }
-        
-        
 
-        public List<Answer> AddAnswers(List<AnswerView> view, User u)
+        public IEnumerable<User> ToShareUserViewModel()
         {
-            List<Answer> answers = new List<Answer>();
+            return Users;
+        }
+
+
+        public IEnumerable<Answer> AddAnswers(List<AnswerView> view, User u)
+        {
+            var answers = new List<Answer>();
 
             foreach (var answerView in view)
             {
-                Question q = Questions.FirstOrDefault(q => q.Id == answerView.QuestionId);
+                var q = Questions.FirstOrDefault(q => q.Id == answerView.QuestionId);
                 if (q == null)
                 {
                     throw new Exception();

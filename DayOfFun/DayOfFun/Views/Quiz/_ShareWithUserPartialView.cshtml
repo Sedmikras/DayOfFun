@@ -1,0 +1,29 @@
+﻿@model DayOfFun.Models.DB.User
+
+<div class="modal fade" id="addUser">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Add Users</h4>
+                <button type="button" class="close btn-close" data-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form action="Share" onsubmit="function(event) {
+                    event.stopPropagation();
+                }">
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email"/>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal">Close</button>
+                <button class="btn btn-primary" data-save="modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

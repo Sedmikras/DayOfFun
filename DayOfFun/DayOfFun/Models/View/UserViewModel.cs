@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using DayOfFun.Model;
+using DayOfFun.Models.DB;
 using Microsoft.AspNetCore.Identity;
 
 namespace DayOfFun.Models.View;
@@ -35,4 +35,14 @@ public class UserViewModel
             Email = this.Email
         };
     }
+}
+
+public class ShareUserViewModel
+{
+    [PersonalData]
+    [Column(TypeName = "nvarchar(255)")]
+    [Required(ErrorMessage = "Email is required")]
+    public string Email { get; set; }
+    
+    public int QuizId { get; set; }
 }

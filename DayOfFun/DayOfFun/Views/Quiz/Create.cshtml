@@ -1,5 +1,4 @@
-﻿@using DayOfFun.Model
-@model DayOfFun.Models.View.QuizCreateViewModel
+﻿@model DayOfFun.Models.View.QuizCreateViewModel
 
 @{
     ViewData["Title"] = "Create new quiz";
@@ -24,17 +23,16 @@
                     </div>
                     <div class="form-group mb-3">
                         <div id="questions">
-                            @for (int i = 0; i < Model.questions.Count; i++)
+                            @for (int i = 0; i < Model.Questions.Count; i++)
                             {
                                 <div id="question_@i" class="row mb-3">
                                     <div class="col-8">
-                                        @Html.TextBoxFor(m => m.questions[i].Text, new { @class = "searchBox", @id = "azureautosuggest" }) <input value="" class="searchBoxSubmit" type="submit">
-                                        @*@Html.EditorFor(q => q.questions[i].Text)*@
+                                        @Html.TextBoxFor(m => m.Questions[i].Text, new { @class = "searchBox", @id = "azureautosuggest" })
                                     </div>
                                     <div class="col-4">
                                         <button id="btnremove" type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(this)">Delete</button>
                                     </div>
-                                    <span asp-validation-for="questions[i].Text" class="text-danger"></span>
+                                    <span asp-validation-for="Questions[i].Text" class="text-danger"></span>
                                 </div>
                                 <br/>
                             }
@@ -62,20 +60,20 @@
 {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
-        $(document).ready( function ()
-            { 
-                debugger;
+        $(document).ready( function () { 
             $("#azureautosuggest").autocomplete({
-                source: "/Quiz/SuggestAsync?highlights=false&fuzzy=false",
-                minLength: 2,
-                position: {
-                    my: "left top",
-                    at: "left-23 bottom+10"
-                }
-            })
-        });
+                source: "/Quiz/Suggest"
+            });}
+        );
+        
+        function addAutocomplete(htmlElement) {
+            $(htmlElement).autocomplete({
+                source: "/Quiz/Suggest"
+            });
+        }
         
         function addQuestion(btn) {
+            debugger;
             // prepare ID
             var idElement = document.getElementById("lastIndex")
             var lastRowId = idElement.value;
@@ -90,7 +88,7 @@
             
             var newRow = questionsHtmlElement.appendChild(document.createElement('div'))
             newRow.innerHTML = divOuterHtml;
-            debugger;
+            addAutocomplete(newRow.getElementsByClassName('ui-autocomplete-input'));
         };  
         
         function deleteQuestion(btn) {

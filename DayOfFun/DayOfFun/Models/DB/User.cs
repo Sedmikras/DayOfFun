@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using DayOfFun.Models.View;
 
-namespace DayOfFun.Model
+namespace DayOfFun.Models.DB
 {
     public class User
     {
@@ -9,7 +8,7 @@ namespace DayOfFun.Model
 
         public string? Username { get; set; }
 
-        public String Email { get; set; }
+        public string Email { get; set; }
 
         public bool IsTemporary { get; set; } = false;
 

@@ -1,6 +1,4 @@
-﻿using DayOfFun.Model;
-
-namespace WebApplication1.managers;
+﻿namespace WebApplication1.managers;
 
 public class QuizManager
 {

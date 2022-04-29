@@ -1,5 +1,4 @@
-﻿using DayOfFun.Model;
-using DayOfFun.Models;
+﻿using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
 namespace DayOfFun.Data.Services.Contract;
@@ -7,8 +6,6 @@ namespace DayOfFun.Data.Services.Contract;
 public interface IUserService
 {
     bool RegisterUser(UserViewModel uvm, out User user);
-
-    bool getQuizzIdsForUser(ISession session, out List<Quizzes_Users> quizzesUsers);
 
     User getUserByID(int userId);
 

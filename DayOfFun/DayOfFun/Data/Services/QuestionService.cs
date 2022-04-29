@@ -1,7 +1,7 @@
 ﻿using Castle.Core.Internal;
 using DayOfFun.Data.Services.Contract;
-using DayOfFun.Model;
 using DayOfFun.Models;
+using DayOfFun.Models.DB;
 using SQLitePCL;
 
 namespace DayOfFun.Data.Services;

@@ -1,6 +1,4 @@
-using DayOfFun.Model;
-using DayOfFun.Models;
-using DayOfFun.Models.Domain;
+using DayOfFun.Models.DB;
 using Microsoft.EntityFrameworkCore;
 
 namespace DayOfFun.Data;

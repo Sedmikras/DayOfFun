@@ -1,5 +1,4 @@
-﻿using DayOfFun.Model;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 namespace WebApplication1.tests;
 
 

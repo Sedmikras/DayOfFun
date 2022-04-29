@@ -1,6 +1,6 @@
 ﻿using DayOfFun.managers;
-using DayOfFun.Model;
-using DayOfFun.Models.Domain;
+using DayOfFun.Models.DB;
+using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
 

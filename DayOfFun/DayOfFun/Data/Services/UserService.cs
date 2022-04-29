@@ -1,6 +1,6 @@
 ﻿using DayOfFun.Data.Services.Contract;
-using DayOfFun.Model;
 using DayOfFun.Models;
+using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
 namespace DayOfFun.Data.Services;
@@ -88,12 +88,6 @@ public class UserService : IUserService
     {
         throw new NotImplementedException();
     }*/
-
-
-    public bool getQuizzIdsForUser(ISession session, out List<Quizzes_Users> quizzesUsers)
-    {
-        throw new NotImplementedException();
-    }
 
     public User getUserByID(int userId)
     {

@@ -1,22 +1,15 @@
-using Azure;
-using Azure.Search.Documents;
-using Azure.Search.Documents.Indexes;
+using System.Net;
+using System.Net.Mime;
 using DayOfFun.managers;
-using DayOfFun.Model;
-using DayOfFun.Models.Domain;
+using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace DayOfFun.Controllers
 {
     public class QuizController : Controller
     {
         private readonly ApplicationManager _applicationManager;
-        private static SearchIndexClient _indexClient;
-        private static SearchClient _searchClient;
-        private static IConfigurationBuilder _builder;
-        private static IConfigurationRoot _configuration;
 
         public QuizController(ApplicationManager applicationManager)
         {
@@ -32,7 +25,7 @@ namespace DayOfFun.Controllers
         public async Task<IActionResult> Create()
         {
             QuizCreateViewModel qvm = new QuizCreateViewModel();
-            qvm.questions.Add(new Question());
+            qvm.Questions.Add(new Question());
             return View(qvm);
         }
 
@@ -70,22 +63,36 @@ namespace DayOfFun.Controllers
             }
         }
 
+        public IActionResult Users(int quizId)
+        {
+            return View(_applicationManager.getQuizUsersView(HttpContext.Session, quizId));
+        }
+
         public IActionResult Share(int quizId)
         {
-            String email = "Langmajerova.Barbora@gmail.com";
-            email.ToLower();
-            _applicationManager.Share(HttpContext.Session, email);
-            /*byte[] hash;
-            using (MD5 md5 = MD5.Create())
-            {
-                md5.Initialize();
-                md5.ComputeHash(Encoding.UTF8.GetBytes(email));
-                hash = md5.Hash;
-            }
+            return PartialView("_ShareWithUserPartialView",new User());
+        }
 
-            var str = System.Text.Encoding.UTF8.GetString(hash);*/
-            String adress = "\\public\\fill\\" + quizId + "?email=" + email;
-            throw new NotImplementedException();
+        [HttpPost]
+        public async Task<IActionResult> Share(ShareUserViewModel suv)
+        {
+            if (ModelState.IsValid)
+            {
+                //return await _applicationManager.ValidateEmail(HttpContext, suv);
+
+                //_applicationManager.ValidateEmail();
+                ViewBag["errorMessage"] = "I dont know this user" + suv.Email;
+                //  When I want to return success:
+                Response.StatusCode = (int)HttpStatusCode.OK; 
+                return Json("Message sent!", MediaTypeNames.Text.Plain);
+            }
+            else
+            {
+                ViewBag["errorMessage"] = "I dont know this user" + suv.Email;
+                //  When I want to return error:
+                Response.StatusCode = (int)HttpStatusCode.BadRequest; 
+                return Json("Message sent!", MediaTypeNames.Text.Plain);
+            }
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -101,33 +108,15 @@ namespace DayOfFun.Controllers
             return View(qdm);
         }
 
-        public async Task<IActionResult> Suggest(string term)
+        [Produces("application/json")]
+        public async Task<IActionResult> Suggest()
         {
-            List<String> Question_Texts = await _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
+            var term = HttpContext.Request.Query["term"].ToString();
+            List<String> questionTexts = await _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
             // Convert the suggested query results to a list that can be displayed in the client.
-            string value = String.Empty;
-            value = JsonConvert.SerializeObject(Question_Texts, Formatting.Indented, new JsonSerializerSettings()
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
 
             // Return the list of suggestions.
-            return new JsonResult(value);
-        }
-
-        private void InitSearch()
-        {
-            // Create a configuration using the appsettings file.
-            _builder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
-            _configuration = _builder.Build();
-
-            // Pull the values from the appsettings.json file.
-            string searchServiceUri = _configuration["SearchServiceUri"];
-            string queryApiKey = _configuration["SearchServiceQueryApiKey"];
-
-            // Create a service and index client.
-            _indexClient = new SearchIndexClient(new Uri(searchServiceUri), new AzureKeyCredential(queryApiKey));
-            _searchClient = _indexClient.GetSearchClient("hotels-sample-index");
+            return Ok(questionTexts);
         }
     }
 }

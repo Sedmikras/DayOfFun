@@ -1,6 +1,4 @@
-﻿using DayOfFun.BeginCollectionItemCore.Models;
-using DayOfFun.Model;
-using DayOfFun.Models.Domain;
+﻿using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
 namespace DayOfFun.Data.Services.Contract;

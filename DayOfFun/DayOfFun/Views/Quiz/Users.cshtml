@@ -1,0 +1,74 @@
+﻿@model IEnumerable<DayOfFun.Models.DB.User>
+
+@{
+    ViewBag.Title = "title";
+    Layout = "_Layout";
+}
+
+<button type="button" class="btn btn-primary" data-toggle="ajax-modal" data-target="#addUser"
+        data-url="@Url.Action("Share")">Share with others</button>
+<div id="PlaceHolderHere"></div>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Username)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Email)
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <th>@item.Username</th>
+            <th>@item.Email</th>
+        </tr>   
+    }
+    </tbody>
+</table>
+
+
+
+
+
+
+
+@section Scripts
+{
+    <script>
+        $(document).ready( function() {
+            var PlaceHolderElement = $('#PlaceHolderHere');
+            $('button[data-toggle="ajax-modal"]').click(function (event) {
+                debugger;
+                var url = $(this).data('url');
+                $.get(url).done(function (data) {
+                    PlaceHolderElement.html(data);
+                    PlaceHolderElement.find('.modal').modal('show');
+                })
+            })
+            
+            PlaceHolderElement.on('click', '[data-save="modal"]', function (event) {
+                var form = $(this).parents('.modal').find('form');
+                var actionUrl = form.attr('action');
+                var sendData = form.serialize() + "&" + document.URL.split("?")[1];
+                $.post(actionUrl, sendData)
+                    .done(function (data) {toastr.success("User added succesfully"); PlaceHolderElement.find('.modal').modal('hide');})
+                    .fail(function (data) {toastr.error("typičo tyole dopiči");})
+            })
+            
+            PlaceHolderElement.on('click', '[data-dismiss="modal"]', function (event) {
+                PlaceHolderElement.find('.modal').modal('hide');
+            })
+        })
+            
+                        
+        function showModal() {
+        var popup = document.getElementById("popup");
+        popup.classList.remove("d-none");
+        };  
+    </script>
+}
+

@@ -1,10 +1,11 @@
-﻿using DayOfFun.BeginCollectionItemCore.Models;
+﻿using System.Net;
+using System.Net.Mime;
 using DayOfFun.Data;
 using DayOfFun.Data.Services.Contract;
-using DayOfFun.Model;
-using DayOfFun.Models.Domain;
+using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
-using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.AspNetCore.Mvc;
+using WebApplication1.Models;
 
 namespace DayOfFun.managers;
 
@@ -132,11 +133,11 @@ public class ApplicationManager
         {
             throw new Exception();
         }
-        
-        List<Answer> answers = quiz.AddAnswers(model.QuestionAnswers, u);
+
+        IEnumerable<Answer> answers = quiz.AddAnswers(model.QuestionAnswers, u);
         _context.Answers.AddRange(answers);
         _context.SaveChanges();
-        
+
         //validate quiz state
         _quizService.ValidateModel(quiz);
         if (quiz.State != State.INVALID)
@@ -171,10 +172,11 @@ public class ApplicationManager
         }
 
         Quiz quiz;
-        if (!_quizService.Read(quizId, out quiz)) {
+        if (!_quizService.Read(quizId, out quiz))
+        {
             throw new Exception();
         }
-        
+
         List<Answer> answers = _context.Answers.Where(a => a.QuizId == quiz.Id).ToList();
 
         return new QuizDetailsModel(quiz, answers);
@@ -196,12 +198,43 @@ public class ApplicationManager
         User newUser;
         if (_userService.GetUserByEmail(email, out newUser))
         {
-            
         }
         else
         {
             _userService.AddTemporaryUser(email);
         }
-
     }
+
+    public async Task<List<string>> SuggestQuestionsAsync(ISession session, string term)
+    {
+        User u;
+        if (!_userService.getUserFromSession(session, out u))
+        {
+            throw new Exception();
+        }
+
+        var questionsText = _context.Questions.Where(q => q.Text.Contains(term)).Select(q => q.Text).ToList();
+        return questionsText;
+    }
+
+    //TODO - asi bude potŘeba to trochu změnit
+    public List<User> getQuizUsersView(ISession session, int quizId)
+    {
+        User u;
+        Quiz q;
+        if (!_userService.getUserFromSession(session, out u) || !_quizService.Read(quizId, out q))
+        {
+            throw new Exception();
+        }
+        else
+        {
+            return q.ToShareUserViewModel().ToList();
+        }
+    }
+
+    /*public async Task<IActionResult> ValidateEmail(HttpContext httpContext, ShareUserViewModel suv)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+        return await _context.Users.Where(suv.Email == suv.Email).Any()
+    }*/
 }

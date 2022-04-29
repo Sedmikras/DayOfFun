@@ -1,5 +1,4 @@
-﻿using DayOfFun.Model;
-using DayOfFun.Models.Domain;
+﻿using DayOfFun.Models.DB;
 
 namespace DayOfFun.Data.Services.Contract;
 
