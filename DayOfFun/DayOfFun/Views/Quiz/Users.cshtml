@@ -1,4 +1,4 @@
-﻿@using Azure.Core
+﻿@using Microsoft.AspNetCore.Http.Extensions
 @model IEnumerable<DayOfFun.Models.View.UserDetailsModel>
 
 @{
@@ -7,7 +7,9 @@
 }
 
 <button type="button" class="btn btn-primary" data-toggle="ajax-modal" data-target="#addUser"
-        data-url="@Url.Action()">Share with others</button>
+        data-url="@Url.Action()">
+    Share with others
+</button>
 <div id="PlaceHolderHere"></div>
 <table class="table">
     <thead>
@@ -32,35 +34,39 @@
         <tr>
             <th>@item.Username</th>
             <th>@item.Email</th>
-            <th>@if (@item.IsFinished)
+            <th>
+                @if (@item.IsFinished)
                 {
                     <div>FINISHED</div>
-                } else if (@item.IsResponded)
+                }
+                else if (@item.IsResponded)
                 {
                     <div>STARTED</div>
                 }
                 else
                 {
                     <div>NOT STARTED</div>
-                }</th>
-            <th>
-                @if (@item.IsResponded == false)
-                {
-                    <div>DELETE</div>
-                    <div onclick="copyURLToCLipboard(this)" data-value="@Url.ToString()" email="@item.Email">COPY LINK TO CLIPBOARD</div>
                 }
             </th>
-        </tr>   
+            <th>
+                <div class="row">
+                    @if (@item.IsResponded == false)
+                    {
+                        <div class="col-6"><a asp-action="Unshare" asp-route-QuizId="@item.QuizId" asp-route-UserId="@item.Email">DELETE</a></div>
+                    }
+                    @if (item.Email != Context.Session.GetString("Email"))
+                    {
+                        <div class="col-6" onclick="copyURLToCLipboard(this)" data-value="@Url.Action("Fill", "Public", item.QuizId, "https")" email="@item.Email">COPY LINK TO CLIPBOARD</div>
+                    }
+                </div>
+            </th>
+        </tr>
     }
     </tbody>
 </table>
 <div>
     <a asp-action="Index"> Back to List</a>
 </div>
-
-
-
-
 
 
 @section Scripts
@@ -97,9 +103,8 @@
             
         function copyURLToCLipboard(clickedElement) {
             debugger;
-            var url = "https://localhost:7228/Public/Fill/4?email=kouba.prem@gmail.com".toString(); 
-            var text = clickedElement.getAttribute('data-value') + "/" + document.URL.split("?")[1] + "?email=" + encodeURIComponent(clickedElement.getAttribute('email'));
-            navigator.clipboard.writeText(url).then(function () {
+            var text = clickedElement.getAttribute('data-value') + '/' + document.URL.split("?quizId=")[1] + "?email=" + encodeURIComponent(clickedElement.getAttribute('email'));
+            navigator.clipboard.writeText(text).then(function () {
                 toastr.success('It worked! Do a CTRL - V to paste');
             }, function () {
                 toastr.error('Failure to copy. Check permissions for clipboard');
@@ -112,4 +117,3 @@
         };  
     </script>
 }
-

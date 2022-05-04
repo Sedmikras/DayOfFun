@@ -100,6 +100,18 @@ namespace DayOfFun.Controllers
             return Json("Message sent");
         }
 
+        /// <summary>
+        /// Should be HttpDelete but browser does not support it only from javascript and im kinda lazy to do it JS way
+        /// </summary>
+        /// <param name="UserId"></param>
+        /// <param name="QuizId"></param>
+        /// <returns></returns>
+        public IActionResult Unshare(int UserId, int QuizId)
+        {
+            
+            return RedirectToAction("Users", new {quizId = QuizId});
+        }
+
         public async Task<IActionResult> Edit(int id)
         {
             //Quiz quiz = _quizService.getQuizById(id);
