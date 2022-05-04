@@ -237,4 +237,39 @@ public class ApplicationManager
         httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
         return await _context.Users.Where(suv.Email == suv.Email).Any()
     }*/
+    public bool ValidateEmail(ISession session, ShareUserViewModel suvm)
+    {
+        User u, addedUser;
+        Quiz q;
+        
+        //validity checks
+        if (!_userService.getUserFromSession(session, out u) || !_quizService.Read(suvm.QuizId, out q))
+        {
+            return false;
+        }
+        
+        _userService.GetUserByEmail(suvm.Email, out addedUser);
+        if (addedUser == null)
+        {
+            addedUser = new User()
+            {
+                Email = suvm.Email.ToLower()
+            };
+            _context.Users.Add(addedUser);
+            _context.SaveChanges();
+        }
+        
+        if (u == addedUser)
+        {
+            return false;
+        }
+        
+        //save changes to DB
+        addedUser.Quizzes.Add(q);
+        q.Users.Add(addedUser);
+        _context.Quizzes.Update(q);
+        _context.Users.Update(addedUser);
+        _context.SaveChanges();
+        return true;
+    }
 }

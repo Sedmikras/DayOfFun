@@ -70,29 +70,32 @@ namespace DayOfFun.Controllers
 
         public IActionResult Share(int quizId)
         {
-            return PartialView("_ShareWithUserPartialView",new User());
+            return PartialView("_ShareWithUserPartialView", new User());
         }
 
         [HttpPost]
         public async Task<IActionResult> Share(ShareUserViewModel suv)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 //return await _applicationManager.ValidateEmail(HttpContext, suv);
 
                 //_applicationManager.ValidateEmail();
                 ViewBag["errorMessage"] = "I dont know this user" + suv.Email;
                 //  When I want to return success:
-                Response.StatusCode = (int)HttpStatusCode.OK; 
+                Response.StatusCode = (int) HttpStatusCode.BadRequest;
                 return Json("Message sent!", MediaTypeNames.Text.Plain);
             }
-            else
+
+            if (!_applicationManager.ValidateEmail(HttpContext.Session, suv))
             {
-                ViewBag["errorMessage"] = "I dont know this user" + suv.Email;
-                //  When I want to return error:
-                Response.StatusCode = (int)HttpStatusCode.BadRequest; 
-                return Json("Message sent!", MediaTypeNames.Text.Plain);
+                Response.StatusCode = (int) HttpStatusCode.BadRequest;
+                return Json("Message sent");
             }
+
+            //  When I want to return error:
+            Response.StatusCode = (int) HttpStatusCode.OK;
+            return Json("Message sent");
         }
 
         public async Task<IActionResult> Edit(int id)
