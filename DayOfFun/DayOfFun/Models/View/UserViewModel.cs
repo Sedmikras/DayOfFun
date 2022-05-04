@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using DayOfFun.Models.DB;
 using Microsoft.AspNetCore.Identity;
+using NUnit.Framework;
 
 namespace DayOfFun.Models.View;
 
@@ -45,4 +46,16 @@ public class ShareUserViewModel
     public string Email { get; set; }
     
     public int QuizId { get; set; }
+}
+
+public class UserDetailsModel
+{
+    public string Username { get; set; }
+    public string Email { get; set; }
+
+    public int QuizId { get; set; }
+    public bool IsFinished { get; set; } = false;
+
+    public bool IsResponded { get; set; } = false;
+
 }

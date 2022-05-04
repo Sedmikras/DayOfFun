@@ -218,18 +218,17 @@ public class ApplicationManager
     }
 
     //TODO - asi bude potŘeba to trochu změnit
-    public List<User> getQuizUsersView(ISession session, int quizId)
+    public List<UserDetailsModel> getQuizUsersView(ISession session, int quizId)
     {
         User u;
         Quiz q;
-        if (!_userService.getUserFromSession(session, out u) || !_quizService.Read(quizId, out q))
+        List<UserDetailsModel> data;
+        if (!_userService.getUserFromSession(session, out u) || !_quizService.ToShareUserViewModel(quizId, out data))
         {
             throw new Exception();
         }
-        else
-        {
-            return q.ToShareUserViewModel().ToList();
-        }
+
+        return data != null ? data : new List<UserDetailsModel>();
     }
 
     /*public async Task<IActionResult> ValidateEmail(HttpContext httpContext, ShareUserViewModel suv)
@@ -237,38 +236,33 @@ public class ApplicationManager
         httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
         return await _context.Users.Where(suv.Email == suv.Email).Any()
     }*/
-    public bool ValidateEmail(ISession session, ShareUserViewModel suvm)
+    public void ValidateEmail(string email, Quiz q, out User user)
     {
-        User u, addedUser;
-        Quiz q;
-        
-        //validity checks
-        if (!_userService.getUserFromSession(session, out u) || !_quizService.Read(suvm.QuizId, out q))
+        User u = _context.Users.FirstOrDefault(u => u.Email == email);
+        if (u == null)
         {
-            return false;
-        }
-        
-        _userService.GetUserByEmail(suvm.Email, out addedUser);
-        if (addedUser == null)
-        {
-            addedUser = new User()
+            u = new User()
             {
-                Email = suvm.Email.ToLower()
+                Email = email,
+                IsTemporary = true
             };
-            _context.Users.Add(addedUser);
-            _context.SaveChanges();
+            u.Quizzes.Add(q);
+            _context.Users.AddAsync(u);
         }
-        
-        if (u == addedUser)
+        u.Quizzes.Add(q);
+        user = u;
+    }
+
+    public bool ShareQuiz(ISession session, ShareUserViewModel suv)
+    {
+        User current, added;
+        Quiz q;
+        if (!_userService.getUserFromSession(session, out current) || !_quizService.Read(suv.QuizId, out q))
         {
-            return false;
+            throw new Exception();
         }
-        
-        //save changes to DB
-        addedUser.Quizzes.Add(q);
-        q.Users.Add(addedUser);
-        _context.Quizzes.Update(q);
-        _context.Users.Update(addedUser);
+        ValidateEmail(suv.Email, q, out added);
+        current.Quizzes.Add(q);
         _context.SaveChanges();
         return true;
     }

@@ -67,4 +67,5 @@ public interface IQuizService
     public void ValidateModel(Quiz model);
     
     public Quiz getQuizById(int quizId);
+    bool ToShareUserViewModel(int quizId, out List<UserDetailsModel> data);
 }

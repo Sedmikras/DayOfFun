@@ -1,5 +1,5 @@
 using System.Net;
-using System.Net.Mime;
+using System.Text.Json;
 using DayOfFun.managers;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
@@ -76,22 +76,24 @@ namespace DayOfFun.Controllers
         [HttpPost]
         public async Task<IActionResult> Share(ShareUserViewModel suv)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
+                _applicationManager.ShareQuiz(HttpContext.Session, suv);
+                string successMessage = "Succesfully added" + suv.Email;
                 //return await _applicationManager.ValidateEmail(HttpContext, suv);
 
                 //_applicationManager.ValidateEmail();
-                ViewBag["errorMessage"] = "I dont know this user" + suv.Email;
+                //ViewBag["successMessage"] = successMessage;
                 //  When I want to return success:
                 Response.StatusCode = (int) HttpStatusCode.BadRequest;
-                return Json("Message sent!", MediaTypeNames.Text.Plain);
+                return Json(successMessage, new JsonSerializerOptions(JsonSerializerOptions.Default));
             }
 
-            if (!_applicationManager.ValidateEmail(HttpContext.Session, suv))
+            /*if (!_applicationManager.ValidateEmail(HttpContext.Session, suv))
             {
                 Response.StatusCode = (int) HttpStatusCode.BadRequest;
                 return Json("Message sent");
-            }
+            }*/
 
             //  When I want to return error:
             Response.StatusCode = (int) HttpStatusCode.OK;

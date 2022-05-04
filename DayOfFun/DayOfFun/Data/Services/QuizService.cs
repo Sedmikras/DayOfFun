@@ -432,4 +432,36 @@ public class QuizService : IQuizService
     {
         throw new NotImplementedException();
     }
+
+    public bool ToShareUserViewModel(int quizId, out List<UserDetailsModel> data)
+    {
+        Quiz q;
+        if (!Read(quizId, out q))
+        {
+            data = null;
+            return false;
+        }
+
+        //
+        var answers = _context.Answers.Where(a => a.Quiz.Id == quizId).ToList();
+        var numberOfQuestions = q.Questions.Count;
+        var results = new List<UserDetailsModel>();
+        foreach (var user in q.Users)
+        {
+            var Answerscount = answers.Where(a => a.User == user).Count();
+            bool IsResponded = (Answerscount > 0);
+            bool IsFinished = (Answerscount == numberOfQuestions);
+            var udm = new UserDetailsModel()
+            {
+                Email = user.Email,
+                Username = user.Username,
+                IsFinished = IsFinished,
+                IsResponded = IsResponded,
+                QuizId = q.Id
+            };
+            results.Add(udm);
+        }
+        data = results;
+        return true;
+    }
 }

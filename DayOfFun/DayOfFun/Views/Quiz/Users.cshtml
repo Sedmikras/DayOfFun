@@ -1,5 +1,5 @@
 ﻿@using Azure.Core
-@model IEnumerable<DayOfFun.Models.DB.User>
+@model IEnumerable<DayOfFun.Models.View.UserDetailsModel>
 
 @{
     ViewBag.Title = "title";
@@ -7,7 +7,7 @@
 }
 
 <button type="button" class="btn btn-primary" data-toggle="ajax-modal" data-target="#addUser"
-        data-url="@Url.Action("Share")">Share with others</button>
+        data-url="@Url.Action()">Share with others</button>
 <div id="PlaceHolderHere"></div>
 <table class="table">
     <thead>
@@ -17,6 +17,9 @@
         </th>
         <th>
             @Html.DisplayNameFor(model => model.Email)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsFinished)
         </th>
         <th>
             Actions
@@ -29,13 +32,31 @@
         <tr>
             <th>@item.Username</th>
             <th>@item.Email</th>
-            <th><a data-value="@Url.Action("Fill", "Public", new {}, "https")" 
-                   class="btn btn-primary" email="@item.Email" onclick="copyURLToCLipboard(this)">Copy link</a></th> 
+            <th>@if (@item.IsFinished)
+                {
+                    <div>FINISHED</div>
+                } else if (@item.IsResponded)
+                {
+                    <div>STARTED</div>
+                }
+                else
+                {
+                    <div>NOT STARTED</div>
+                }</th>
+            <th>
+                @if (@item.IsResponded == false)
+                {
+                    <div>DELETE</div>
+                    <div onclick="copyURLToCLipboard(this)" data-value="@Url.ToString()" email="@item.Email">COPY LINK TO CLIPBOARD</div>
+                }
+            </th>
         </tr>   
     }
     </tbody>
 </table>
-
+<div>
+    <a asp-action="Index"> Back to List</a>
+</div>
 
 
 
@@ -61,9 +82,12 @@
                 var actionUrl = form.attr('action');
                 var sendData = form.serialize() + "&" + document.URL.split("?")[1];
                 $.post(actionUrl, sendData)
-                    .done(function (data) {toastr.success("User added succesfully"); PlaceHolderElement.find('.modal').modal('hide');})
-                    /*TODO nebuď sprostej*/
-                    .fail(function (data) {toastr.error("typičo tyole dopiči");})
+                    .done(function (data) {
+                        toastr.success(data.toString()); 
+                        PlaceHolderElement.find('.modal').modal('hide');
+                        location.reload();
+                    })
+                    .fail(function (data) {toastr.error(data.toString());})
             })
             
             PlaceHolderElement.on('click', '[data-dismiss="modal"]', function (event) {
@@ -73,9 +97,8 @@
             
         function copyURLToCLipboard(clickedElement) {
             debugger;
-            /*var url = "https://localhost:7228/Public/Fill/4?email=kouba.prem@gmail.com".toString();*/ 
             var url = "https://localhost:7228/Public/Fill/4?email=kouba.prem@gmail.com".toString(); 
-            /*clickedElement.getAttribute('data-value') + "/" + document.URL.split("?")[1] + "?email=" + encodeURIComponent(clickedElement.getAttribute('email'));*/
+            var text = clickedElement.getAttribute('data-value') + "/" + document.URL.split("?")[1] + "?email=" + encodeURIComponent(clickedElement.getAttribute('email'));
             navigator.clipboard.writeText(url).then(function () {
                 toastr.success('It worked! Do a CTRL - V to paste');
             }, function () {
