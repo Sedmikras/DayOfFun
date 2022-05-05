@@ -58,4 +58,8 @@ public class UserDetailsModel
 
     public bool IsResponded { get; set; } = false;
 
+    public int NumberOfQuestions { get; set; } = 0;
+
+    public int NumberOfAnswers { get; set; } = 0;
+
 }
