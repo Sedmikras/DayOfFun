@@ -1,5 +1,5 @@
-﻿using DayOfFun.Data.Services.Contract;
-using DayOfFun.Models;
+﻿using System.Text;
+using DayOfFun.Data.Services.Contract;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
@@ -9,7 +9,7 @@ public class UserService : IUserService
 {
     private readonly ApplicationDbContext _context;
 
-    private static ILogger _logger =
+    private static readonly ILogger Logger =
         LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(typeof(UserService));
 
     public UserService(ApplicationDbContext context)
@@ -17,115 +17,52 @@ public class UserService : IUserService
         _context = context;
     }
 
-    public bool RegisterUser(UserViewModel uvm, out User user)
+    public bool RegisterUser(UserViewModel uvm)
     {
-        if (_context.Users.Where(u => u.Email == uvm.Email).FirstOrDefault() != null)
+        if (_context.Users.FirstOrDefault(u => u.Email == uvm.Email) != null)
         {
-            user = null;
-            _logger.LogError("User with email {Email} already exists", uvm.Email);
+            Logger.LogError("User with email {Email} already exists", uvm.Email);
             return false;
         }
-
-        user = uvm.ToApplicationUser();
+        var user = uvm.ToApplicationUser();
         _context.Users.Add(user);
         _context.SaveChangesAsync();
-        _logger.LogInformation("User with email {Email} successfully registered", uvm.Email);
+        Logger.LogInformation("User with email {Email} successfully registered", uvm.Email);
         return true;
     }
 
-/*
-    public IEnumerable<Quiz> getQuizzesByUserId(int userId)
+    public User GetUserByID(int userId)
     {
-        User user = getUserByID(userId);
-        List<Quiz> quizzes = new List<Quiz>();
-        foreach (var quizzesUser in user.Quizzes_Users)
+        throw new NotImplementedException();
+    }
+
+    public void AddUser(User u)
+    {
+        _context.Users.Add(u);
+        _context.SaveChanges();
+    }
+
+    public bool GetUserFromSession(ISession session, out User user)
+    {
+        if (session.IsAvailable && session.TryGetValue("UserId", out var value))
         {
-            quizzes.Add(quizzesUser.quiz);
-        }
-        return quizzes;
-    }
-
-    public bool getQuizzIdsForUser(ISession session, out List<Quizzes_Users> quizzesUsers)
-    {
-        User u;
-        if (!getUserFromSession(session, out u))
-        {
-            quizzesUsers = null;
-            return false;
-        }
-        quizzesUsers = _context.Quizzes_Users.Where(qu => qu.userId == u.Id).ToList();
-        return true;
-    }
-
-    public User getUserByID(int userId)
-    {
-        return _context.Users.Where(user => user.Id == userId).First();
-    }
-
-    public void addUser()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool getUserFromSession(ISession session, out User user)
-    {
-        if (session.IsAvailable)
-        {
-            var userId =  Int32.Parse(session.GetString("UserId"));
-            user = _context.Users.Where(user => user.Id == userId).First();
-            return true;
-        }
-        user = null;
-        return false;
-    }
-
-    public User updateUser(int id, User newUser)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Delete()
-    {
-        throw new NotImplementedException();
-    }*/
-
-    public User getUserByID(int userId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void addUser()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool getUserFromSession(ISession session, out User user)
-    {
-        if (session.IsAvailable)
-        {
-            var userId = Int32.Parse(session.GetString("UserId"));
-            user = _context.Users.Where(user => user.Id == userId).First();
+            var userId = int.Parse(Encoding.Default.GetString(value));
+            user = _context.Users.First(u => u.Id == userId);
             return true;
         }
 
-        user = null;
+        Logger.LogError("Could not get user from session");
+        user = null!;
         return false;
     }
 
-    public bool GetUserByEmail(string email, out User user)
+    public bool GetUserByEmail(string email, out User? user)
     {
         user = _context.Users.FirstOrDefault(u => u.Email == email);
-        if (user == null)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return user != null;
     }
 
-    public User updateUser(int id, User newUser)
+    public User UpdateUser(int id, User newUser)
     {
         throw new NotImplementedException();
     }
@@ -137,12 +74,10 @@ public class UserService : IUserService
 
     public void AddTemporaryUser(string email)
     {
-        User newUser = new User()
+        AddUser(new User()
         {
             Email = email,
             IsTemporary = true
-        };
-        _context.Users.Add(newUser);
-        _context.SaveChanges();
+        });
     }
 }

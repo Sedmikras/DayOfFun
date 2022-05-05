@@ -5,17 +5,17 @@ namespace DayOfFun.Data.Services.Contract;
 
 public interface IUserService
 {
-    bool RegisterUser(UserViewModel uvm, out User user);
+    bool RegisterUser(UserViewModel uvm);
 
-    User getUserByID(int userId);
+    User GetUserByID(int userId);
 
-    void addUser();
+    void AddUser(User user);
 
-    public bool getUserFromSession(ISession session, out User user);
+    public bool GetUserFromSession(ISession session, out User user);
 
-    public bool GetUserByEmail(string email, out User u);
+    public bool GetUserByEmail(string email, out User? u);
 
-    User updateUser(int id, User newUser);
+    User UpdateUser(int id, User newUser);
 
     void Delete();
     void AddTemporaryUser(string email);

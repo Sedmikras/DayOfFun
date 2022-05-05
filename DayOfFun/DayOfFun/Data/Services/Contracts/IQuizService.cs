@@ -27,7 +27,7 @@ public interface IQuizService
     /// Removes quiz from the database with check
     /// </summary>
     /// <param name="quizId">id of the quiz</param>
-    public bool Delete(int quizId, User u);
+    public bool Delete(int quizId, User? u);
 
     /// <summary>
     /// Removes quiz from the database with check
@@ -44,7 +44,7 @@ public interface IQuizService
     /// <returns> true if success </returns>
     public bool Read(int quizId, out Quiz quiz);
     
-    public List<QuizViewModel> GetQuizzesModel(ISession session);
+    public bool GetQuizzesModel(ISession session, out List<QuizViewModel> model);
 
     /// <summary>
     /// Return list of quizzes from the database and for each quiz sets info
