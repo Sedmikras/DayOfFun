@@ -23,7 +23,7 @@ public class PublicController : Controller
     public async Task<IActionResult> Fill(int id)
     {
         string email = Request.Query["email"];
-        User u;
+        User? u;
         if (_applicationManager.TemporaryLogin(email, out u)) {
             HttpContext.Session.SetString("Email", email);
             QuizAnswerModel qam =_applicationManager.GetQuizFillModel(u, id);
@@ -38,7 +38,7 @@ public class PublicController : Controller
         if (ModelState.IsValid)
         {
             TempData["successMessage"] = "Quiz successfully filled. Thank you.";
-            User u;
+            User? u;
             if (_applicationManager.TemporaryLogin(HttpContext.Session.GetString("Email"), out u))
             {
                 _applicationManager.UpdateQuiz(u, model);    

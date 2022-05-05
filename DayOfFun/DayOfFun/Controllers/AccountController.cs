@@ -39,8 +39,7 @@ public class AccountController : Controller
                 return View();
             }
 
-            User user;
-            if (!_userService.RegisterUser(userModel, out user))
+            if (!_userService.RegisterUser(userModel))
             {
                 TempData["errorMessage"] = "user with email already exists";
                 ModelState.AddModelError("", "Cannot register user with email " + userModel.Email);

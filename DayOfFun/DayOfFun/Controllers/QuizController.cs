@@ -1,9 +1,9 @@
 using System.Net;
-using System.Text.Json;
 using DayOfFun.managers;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.Models;
 
 namespace DayOfFun.Controllers
 {
@@ -18,38 +18,54 @@ namespace DayOfFun.Controllers
 
         public IActionResult Index()
         {
-            var data = _applicationManager.GetQuizzesForUser(HttpContext.Session);
-            return View(data);
+            if (_applicationManager.GetQuizzesForUser(HttpContext.Session, out var model))
+            {
+                return View(model);
+            }
+            else
+            {
+                TempData["errorMessage"] = "Couldn't read quizzes for user";
+                return RedirectToAction("Error");
+            }
         }
 
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
-            QuizCreateViewModel qvm = new QuizCreateViewModel();
+            var qvm = new QuizCreateViewModel();
             qvm.Questions.Add(new Question());
             return View(qvm);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(QuizCreateViewModel quiz)
+        public IActionResult Create(QuizCreateViewModel quiz)
         {
-            _applicationManager.CreateQuiz(HttpContext.Session, quiz);
-            return RedirectToAction(nameof(Index));
+            if (_applicationManager.CreateQuiz(HttpContext.Session, quiz)) return RedirectToAction(nameof(Index));
+            TempData["errorMessage"] = "Couldn't create quiz with tittle " + quiz.Title;
+            return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
-            _applicationManager.DeleteQuiz(HttpContext.Session, id);
-            return RedirectToAction(nameof(Index));
+            if (_applicationManager.DeleteQuiz(HttpContext.Session, id))
+            {
+                return RedirectToAction(nameof(Index));    
+            }
+            else
+            {
+                TempData["errorMessage"] = "Couldn't delete quiz with id " + id;
+                return RedirectToAction("Error");
+            }
         }
 
-        public async Task<IActionResult> Fill(int id)
+        public IActionResult Fill(int id)
         {
-            QuizAnswerModel qam = _applicationManager.GetQuizFillModel(HttpContext.Session, id);
+            //TODO
+            var qam = _applicationManager.GetQuizFillModel(HttpContext.Session, id);
             return View(qam);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Fill(QuizAnswerModel model)
+        public IActionResult Fill(QuizAnswerModel model)
         {
             if (ModelState.IsValid)
             {
@@ -65,6 +81,7 @@ namespace DayOfFun.Controllers
 
         public IActionResult Users(int quizId)
         {
+            //TODO
             return View(_applicationManager.getQuizUsersView(HttpContext.Session, quizId));
         }
 
@@ -74,26 +91,17 @@ namespace DayOfFun.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Share(ShareUserViewModel suv)
+        public IActionResult Share(ShareUserViewModel suv)
         {
+            //TODO
             if (ModelState.IsValid)
             {
                 _applicationManager.ShareQuiz(HttpContext.Session, suv);
-                string successMessage = "Succesfully added" + suv.Email;
-                //return await _applicationManager.ValidateEmail(HttpContext, suv);
-
-                //_applicationManager.ValidateEmail();
-                //ViewBag["successMessage"] = successMessage;
-                //  When I want to return success:
-                Response.StatusCode = (int) HttpStatusCode.BadRequest;
-                return Json(successMessage, new JsonSerializerOptions(JsonSerializerOptions.Default));
+                var successMessage = "Successfully added user with email:" + suv.Email;
+                TempData["successMessage"] = successMessage;
+                Response.StatusCode = (int) HttpStatusCode.OK;
+                return Json(new { message = successMessage });
             }
-
-            /*if (!_applicationManager.ValidateEmail(HttpContext.Session, suv))
-            {
-                Response.StatusCode = (int) HttpStatusCode.BadRequest;
-                return Json("Message sent");
-            }*/
 
             //  When I want to return error:
             Response.StatusCode = (int) HttpStatusCode.OK;
@@ -103,25 +111,26 @@ namespace DayOfFun.Controllers
         /// <summary>
         /// Should be HttpDelete but browser does not support it only from javascript and im kinda lazy to do it JS way
         /// </summary>
-        /// <param name="UserId"></param>
-        /// <param name="QuizId"></param>
+        /// <param name="email"></param>
+        /// <param name="quizId"></param>
         /// <returns></returns>
-        public IActionResult Unshare(int UserId, int QuizId)
+        public IActionResult Exclude(string  email, int quizId)
         {
-            
-            return RedirectToAction("Users", new {quizId = QuizId});
+            if (!_applicationManager.RemoveUser(email, quizId))
+            {
+                TempData["errorMessage"] = "Failed to remove user";
+            }
+            else
+            {
+                TempData["successMessage"] = "User successfully removed from quiz";    
+            }
+            return RedirectToAction("Users", new {quizId});
         }
 
-        public async Task<IActionResult> Edit(int id)
+        public IActionResult Details(int id)
         {
-            //Quiz quiz = _quizService.getQuizById(id);
-            //quiz.ViewCollection.Add(new Question());
-            return View();
-        }
-
-        public async Task<IActionResult> Details(int id)
-        {
-            QuizDetailsModel qdm = _applicationManager.GetQuizDetailsModel(HttpContext.Session, id);
+            //TODO
+            var qdm = _applicationManager.GetQuizDetailsModel(HttpContext.Session, id);
             return View(qdm);
         }
 
@@ -129,11 +138,16 @@ namespace DayOfFun.Controllers
         public async Task<IActionResult> Suggest()
         {
             var term = HttpContext.Request.Query["term"].ToString();
-            List<String> questionTexts = await _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
+            var questionTexts = await _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
             // Convert the suggested query results to a list that can be displayed in the client.
 
             // Return the list of suggestions.
             return Ok(questionTexts);
+        }
+
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel());
         }
     }
 }
