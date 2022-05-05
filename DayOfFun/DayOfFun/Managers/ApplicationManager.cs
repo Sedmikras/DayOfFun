@@ -1,11 +1,7 @@
-﻿using System.Net;
-using System.Net.Mime;
-using DayOfFun.Data;
+﻿using DayOfFun.Data;
 using DayOfFun.Data.Services.Contract;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
-using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
 
 namespace DayOfFun.managers;
 
@@ -25,15 +21,17 @@ public class ApplicationManager
         this._context = context;
     }
 
-    public List<QuizViewModel> GetQuizzesForUser(ISession session)
+    public bool GetQuizzesForUser(ISession session, out List<QuizViewModel> model)
     {
-        return _quizService.GetQuizzesModel(session);
+        if (_quizService.GetQuizzesModel(session, out model))
+            return true;
+        return false;
     }
 
     public bool DeleteQuiz(ISession session, int quizId)
     {
         User u;
-        if (!_userService.getUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out u))
         {
             return false;
             throw new Exception();
@@ -47,7 +45,7 @@ public class ApplicationManager
     {
         User user;
         //var numberOfQuestion = quizModel.ViewCollection;
-        if (!_userService.getUserFromSession(session, out user))
+        if (!_userService.GetUserFromSession(session, out user))
         {
             //TODO
             throw new Exception();
@@ -76,7 +74,7 @@ public class ApplicationManager
     public QuizAnswerModel GetQuizFillModel(ISession session, int quizId, List<Answer> answers)
     {
         User user;
-        if (!_userService.getUserFromSession(session, out user))
+        if (!_userService.GetUserFromSession(session, out user))
         {
             throw new Exception();
         }
@@ -93,7 +91,7 @@ public class ApplicationManager
     public QuizAnswerModel GetQuizFillModel(ISession session, int quizId)
     {
         User u;
-        if (!_userService.getUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out u))
         {
             throw new Exception();
         }
@@ -135,7 +133,19 @@ public class ApplicationManager
         }
 
         IEnumerable<Answer> answers = quiz.AddAnswers(model.QuestionAnswers, u);
-        _context.Answers.AddRange(answers);
+        foreach (var answer in answers)
+        {
+            var contextAnswer = _context.Answers.FirstOrDefault(a => a.QuizId == quiz.Id && a.QuestionId == answer.QuestionId && a.UserId == u.Id);
+            if (contextAnswer != null)
+            {
+                contextAnswer.Result = answer.Result;
+                _context.Answers.Update(contextAnswer);
+            }
+            else
+            {
+                _context.Answers.Add(answer);
+            }
+        }
         _context.SaveChanges();
 
         //validate quiz state
@@ -155,7 +165,7 @@ public class ApplicationManager
     public State UpdateQuiz(ISession session, QuizAnswerModel model)
     {
         User u;
-        if (!_userService.getUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out u))
         {
             throw new Exception();
         }
@@ -166,7 +176,7 @@ public class ApplicationManager
     public QuizDetailsModel GetQuizDetailsModel(ISession session, int quizId)
     {
         User u;
-        if (!_userService.getUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out u))
         {
             throw new Exception();
         }
@@ -190,12 +200,12 @@ public class ApplicationManager
     public void Share(ISession session, string email)
     {
         User u;
-        if (!_userService.getUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out u))
         {
             throw new Exception();
         }
 
-        User newUser;
+        User? newUser;
         if (_userService.GetUserByEmail(email, out newUser))
         {
         }
@@ -208,7 +218,7 @@ public class ApplicationManager
     public async Task<List<string>> SuggestQuestionsAsync(ISession session, string term)
     {
         User u;
-        if (!_userService.getUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out u))
         {
             throw new Exception();
         }
@@ -223,7 +233,7 @@ public class ApplicationManager
         User u;
         Quiz q;
         List<UserDetailsModel> data;
-        if (!_userService.getUserFromSession(session, out u) || !_quizService.ToShareUserViewModel(quizId, out data))
+        if (!_userService.GetUserFromSession(session, out u) || !_quizService.ToShareUserViewModel(quizId, out data))
         {
             throw new Exception();
         }
@@ -236,7 +246,7 @@ public class ApplicationManager
         httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
         return await _context.Users.Where(suv.Email == suv.Email).Any()
     }*/
-    public void ValidateEmail(string email, Quiz q, out User user)
+    public void ValidateEmail(string email, Quiz q, out User? user)
     {
         User u = _context.Users.FirstOrDefault(u => u.Email == email);
         if (u == null)
@@ -255,14 +265,33 @@ public class ApplicationManager
 
     public bool ShareQuiz(ISession session, ShareUserViewModel suv)
     {
-        User current, added;
+        User current;
+        User added;
         Quiz q;
-        if (!_userService.getUserFromSession(session, out current) || !_quizService.Read(suv.QuizId, out q))
+        if (!_userService.GetUserFromSession(session, out current) || !_quizService.Read(suv.QuizId, out q))
         {
             throw new Exception();
         }
         ValidateEmail(suv.Email, q, out added);
         current.Quizzes.Add(q);
+        _quizService.ValidateModel(q);
+        _context.SaveChanges();
+        return true;
+    }
+
+    public bool RemoveUser(string email, int quizId)
+    {
+        User u;
+        Quiz q;
+        if (!_userService.GetUserByEmail(email, out u) || !_quizService.Read(quizId, out q))
+        {
+            return false;
+        }
+
+        q.Users.Remove(u);
+        u.Quizzes.Remove(q);
+        _context.Answers.RemoveRange(_context.Answers.Where(a => a.QuizId == quizId && a.UserId == u.Id).ToList());
+        _quizService.ValidateModel(q);
         _context.SaveChanges();
         return true;
     }
