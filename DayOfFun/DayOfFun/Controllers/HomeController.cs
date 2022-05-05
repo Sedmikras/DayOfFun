@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
 
 namespace DayOfFun.Controllers;
 

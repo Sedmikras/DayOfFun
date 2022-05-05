@@ -1,8 +1,8 @@
-﻿using DayOfFun.managers;
+﻿using System.Diagnostics;
+using DayOfFun.managers;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
 
 namespace DayOfFun.Controllers;
 
@@ -24,9 +24,10 @@ public class PublicController : Controller
     {
         string email = Request.Query["email"];
         User? u;
+        QuizAnswerModel qam;
         if (_applicationManager.TemporaryLogin(email, out u)) {
             HttpContext.Session.SetString("Email", email);
-            QuizAnswerModel qam =_applicationManager.GetQuizFillModel(u, id);
+            _applicationManager.GetQuizFillModel(u, id, out qam);
             return View(qam);
         } 
         return RedirectToAction("Error");
@@ -58,7 +59,7 @@ public class PublicController : Controller
 
     public IActionResult Error()
     {
-        return View(new ErrorViewModel());
+        return View(new ErrorViewModel() {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
     }
 
 }

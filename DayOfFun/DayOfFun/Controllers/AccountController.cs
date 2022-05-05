@@ -1,6 +1,5 @@
 ﻿using DayOfFun.Data;
 using DayOfFun.Data.Services.Contract;
-using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
 
@@ -62,10 +61,11 @@ public class AccountController : Controller
         if (userModel.Password != null && userModel.Email != null)
         {
             //check user
-            User u = _context.Users.FirstOrDefault(user => user.Email == userModel.Email);
-            if (u == null  || u.Password != userModel.Password)
+            var u = _context.Users.FirstOrDefault(user => user.Email == userModel.Email);
+            if (u == null || u.Password != userModel.Password)
             {
                 ModelState.AddModelError("", "Username or Password is wrong");
+                TempData["errorMessage"] = "Username or Password is wrong";
             }
             else
             {

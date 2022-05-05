@@ -12,6 +12,9 @@ public class ApplicationManager
     private readonly IQuizService _quizService;
     private readonly IQuestionService _questionService;
 
+    private readonly ILogger _logger =
+        LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(typeof(ApplicationManager));
+
     public ApplicationManager(IUserService userService, IQuizService quizService, IQuestionService questionService,
         ApplicationDbContext context)
     {
@@ -23,18 +26,15 @@ public class ApplicationManager
 
     public bool GetQuizzesForUser(ISession session, out List<QuizViewModel> model)
     {
-        if (_quizService.GetQuizzesModel(session, out model))
-            return true;
-        return false;
+        return _quizService.GetQuizzesModel(session, out model);
     }
 
     public bool DeleteQuiz(ISession session, int quizId)
     {
-        User u;
-        if (!_userService.GetUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out var u))
         {
+            _logger.LogError("Couldn't read user from session");
             return false;
-            throw new Exception();
         }
 
         _quizService.Delete(quizId, u);
@@ -43,15 +43,14 @@ public class ApplicationManager
 
     public bool CreateQuiz(ISession session, QuizCreateViewModel quizModel)
     {
-        User user;
         //var numberOfQuestion = quizModel.ViewCollection;
-        if (!_userService.GetUserFromSession(session, out user))
+        if (!_userService.GetUserFromSession(session, out var user))
         {
             //TODO
             throw new Exception();
         }
 
-        Quiz q = new Quiz(user, quizModel);
+        var q = new Quiz(user, quizModel);
         if (q == null)
         {
             //TODO
@@ -71,71 +70,66 @@ public class ApplicationManager
         return true;
     }
 
-    public QuizAnswerModel GetQuizFillModel(ISession session, int quizId, List<Answer> answers)
+    public bool GetQuizFillModel(ISession session, int quizId, List<Answer> answers, out QuizAnswerModel? model)
     {
-        User user;
-        if (!_userService.GetUserFromSession(session, out user))
+        if (!_userService.GetUserFromSession(session, out var user))
         {
-            throw new Exception();
+            _logger.LogError("Couldn't read user from session");
+            model = null;
+            return false;
         }
 
-        Quiz quiz = _context.Quizzes.Where(q => q.Id == quizId).FirstOrDefault();
-        if (quiz == null)
+        var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
+        if (quiz != null)
         {
-            throw new Exception();
+            model = quiz.ToAnswerModel(user, answers);
+            return true;
         }
 
-        return quiz.ToAnswerModel(user, answers);
+        _logger.LogError("Couldn't find quiz with id: {QuizId}", quizId);
+        model = null;
+        return false;
     }
 
-    public QuizAnswerModel GetQuizFillModel(ISession session, int quizId)
+    public bool GetQuizFillModel(ISession session, int quizId, out QuizAnswerModel? model)
     {
-        User u;
-        if (!_userService.GetUserFromSession(session, out u))
-        {
-            throw new Exception();
-        }
+        if (_userService.GetUserFromSession(session, out var u)) return GetQuizFillModel(u, quizId, out model);
+        model = null;
+        _logger.LogError("Couldn't read user from session");
+        return false;
 
-        return GetQuizFillModel(u, quizId);
     }
 
-    public QuizAnswerModel GetQuizFillModel(User user, int quizId)
+    public bool GetQuizFillModel(User user, int quizId, out QuizAnswerModel? model)
     {
         var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
         var answers = _context.Answers.Where(a => a.QuizId == quizId && a.UserId == user.Id).ToList();
+        
         if (quiz == null)
         {
-            throw new Exception();
+            _logger.LogError("Couldn't get quiz wit id {QuizID}", quizId);
+            model = null;
+            return false;
         }
 
-        return quiz.ToAnswerModel(user, answers);
-    }
-
-    public State ValidateQuiz(Quiz quiz)
-    {
-        return State.CREATED;
-        throw new NotImplementedException();
-        return State.INVALID;
+        model = quiz.ToAnswerModel(user, answers);
+        return true;
     }
 
     public State UpdateQuiz(User u, QuizAnswerModel model)
     {
         var quizId = model.QuizId;
-        Quiz quiz;
-        if (!_quizService.Read(quizId, out quiz))
+        if (!_quizService.Read(quizId, out var quiz))
         {
-            throw new Exception();
+            _logger.LogError("Couldn't get quiz wit id {QuizID}", quizId);
+            return State.INVALID;
         }
 
-        if (quiz == null)
-        {
-            throw new Exception();
-        }
-
-        IEnumerable<Answer> answers = quiz.AddAnswers(model.QuestionAnswers, u);
+        var answers = quiz.AddAnswers(model.QuestionAnswers, u);
         foreach (var answer in answers)
         {
-            var contextAnswer = _context.Answers.FirstOrDefault(a => a.QuizId == quiz.Id && a.QuestionId == answer.QuestionId && a.UserId == u.Id);
+            var contextAnswer = _context.Answers.FirstOrDefault(a =>
+                a.QuizId == quiz.Id && a.QuestionId == answer.QuestionId && a.UserId == u.Id);
             if (contextAnswer != null)
             {
                 contextAnswer.Result = answer.Result;
@@ -146,6 +140,7 @@ public class ApplicationManager
                 _context.Answers.Add(answer);
             }
         }
+
         _context.SaveChanges();
 
         //validate quiz state
@@ -164,32 +159,30 @@ public class ApplicationManager
 
     public State UpdateQuiz(ISession session, QuizAnswerModel model)
     {
-        User u;
-        if (!_userService.GetUserFromSession(session, out u))
-        {
-            throw new Exception();
-        }
-
-        return UpdateQuiz(u, model);
+        if (_userService.GetUserFromSession(session, out var u)) return UpdateQuiz(u, model);
+        _logger.LogError("Couldn't get user from session");
+        return State.INVALID;
     }
 
-    public QuizDetailsModel GetQuizDetailsModel(ISession session, int quizId)
+    public bool GetQuizDetailsModel(ISession session, int quizId, out QuizDetailsModel? model)
     {
-        User u;
-        if (!_userService.GetUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out _))
         {
-            throw new Exception();
+            _logger.LogError("Couldn't get user from session");
+            model = null;
+            return false;
         }
 
-        Quiz quiz;
-        if (!_quizService.Read(quizId, out quiz))
+        if (!_quizService.Read(quizId, out var quiz))
         {
-            throw new Exception();
+            _logger.LogError("Couldn't get quiz wit id {QuizID}", quizId);
+            model = null;
+            return false;
         }
 
-        List<Answer> answers = _context.Answers.Where(a => a.QuizId == quiz.Id).ToList();
-
-        return new QuizDetailsModel(quiz, answers);
+        var answers = _context.Answers.Where(a => a.QuizId == quiz.Id).ToList();
+        model = new QuizDetailsModel(quiz, answers);
+        return true;
     }
 
     public bool TemporaryLogin(string email, out User user)
@@ -199,14 +192,13 @@ public class ApplicationManager
 
     public void Share(ISession session, string email)
     {
-        User u;
-        if (!_userService.GetUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out _))
         {
-            throw new Exception();
+            _logger.LogError("Couldn't get user from session");
+            return;
         }
 
-        User? newUser;
-        if (_userService.GetUserByEmail(email, out newUser))
+        if (_userService.GetUserByEmail(email, out _))
         {
         }
         else
@@ -217,28 +209,31 @@ public class ApplicationManager
 
     public async Task<List<string>> SuggestQuestionsAsync(ISession session, string term)
     {
-        User u;
-        if (!_userService.GetUserFromSession(session, out u))
+        if (!_userService.GetUserFromSession(session, out _))
         {
-            throw new Exception();
+            return null;
         }
 
-        var questionsText = _context.Questions.Where(q => q.Text.Contains(term)).Select(q => q.Text).ToList();
-        return questionsText;
+        return await Task.Run(() =>
+        {
+            var questionsText = _context.Questions.Where(q => q.Text.Contains(term)).Select(q => q.Text).ToList();
+            return questionsText;
+        });
     }
 
     //TODO - asi bude potŘeba to trochu změnit
-    public List<UserDetailsModel> getQuizUsersView(ISession session, int quizId)
+    public bool GetQuizUsersView(ISession session, int quizId, out List<UserDetailsModel>? model)
     {
-        User u;
         Quiz q;
-        List<UserDetailsModel> data;
-        if (!_userService.GetUserFromSession(session, out u) || !_quizService.ToShareUserViewModel(quizId, out data))
+        if (!_userService.GetUserFromSession(session, out _) || !_quizService.ToShareUserViewModel(quizId, out var data))
         {
-            throw new Exception();
+            _logger.LogError("Couldn't get user details model. Either session is null or quiz with ID {QuizId} does not exists", quizId);
+            model = null;
+            return false;
         }
 
-        return data != null ? data : new List<UserDetailsModel>();
+        model = data != null ? data : new List<UserDetailsModel>();
+        return true;
     }
 
     /*public async Task<IActionResult> ValidateEmail(HttpContext httpContext, ShareUserViewModel suv)
@@ -246,9 +241,9 @@ public class ApplicationManager
         httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
         return await _context.Users.Where(suv.Email == suv.Email).Any()
     }*/
-    public void ValidateEmail(string email, Quiz q, out User? user)
+    private void ValidateEmail(string email, Quiz q, out User? user)
     {
-        User u = _context.Users.FirstOrDefault(u => u.Email == email);
+        var u = _context.Users.FirstOrDefault(u => u.Email == email);
         if (u == null)
         {
             u = new User()
@@ -259,20 +254,20 @@ public class ApplicationManager
             u.Quizzes.Add(q);
             _context.Users.AddAsync(u);
         }
+
         u.Quizzes.Add(q);
         user = u;
     }
 
     public bool ShareQuiz(ISession session, ShareUserViewModel suv)
     {
-        User current;
-        User added;
-        Quiz q;
-        if (!_userService.GetUserFromSession(session, out current) || !_quizService.Read(suv.QuizId, out q))
+        if (!_userService.GetUserFromSession(session, out var current) || !_quizService.Read(suv.QuizId, out var q))
         {
-            throw new Exception();
+            _logger.LogError("Couldn't get user from session");
+            return false;
         }
-        ValidateEmail(suv.Email, q, out added);
+
+        ValidateEmail(suv.Email, q, out _);
         current.Quizzes.Add(q);
         _quizService.ValidateModel(q);
         _context.SaveChanges();
@@ -281,9 +276,7 @@ public class ApplicationManager
 
     public bool RemoveUser(string email, int quizId)
     {
-        User u;
-        Quiz q;
-        if (!_userService.GetUserByEmail(email, out u) || !_quizService.Read(quizId, out q))
+        if (!_userService.GetUserByEmail(email, out var u) || !_quizService.Read(quizId, out var q))
         {
             return false;
         }

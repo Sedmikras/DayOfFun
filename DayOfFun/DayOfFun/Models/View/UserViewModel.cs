@@ -11,7 +11,7 @@ public class UserViewModel
     [PersonalData]
     [Column(TypeName = "nvarchar(100)")]
     [Required(ErrorMessage = "Username is required with maximum of 100 chars")]
-    public string Username{ get; set; }
+    public string Username { get; set; }
 
     [PersonalData]
     [Column(TypeName = "nvarchar(255)")]

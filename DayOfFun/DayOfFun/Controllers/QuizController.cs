@@ -1,9 +1,9 @@
+using System.Diagnostics;
 using System.Net;
 using DayOfFun.managers;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
 
 namespace DayOfFun.Controllers
 {
@@ -60,7 +60,7 @@ namespace DayOfFun.Controllers
         public IActionResult Fill(int id)
         {
             //TODO
-            var qam = _applicationManager.GetQuizFillModel(HttpContext.Session, id);
+            _applicationManager.GetQuizFillModel(HttpContext.Session, id, out var qam);
             return View(qam);
         }
 
@@ -82,7 +82,8 @@ namespace DayOfFun.Controllers
         public IActionResult Users(int quizId)
         {
             //TODO
-            return View(_applicationManager.getQuizUsersView(HttpContext.Session, quizId));
+            _applicationManager.GetQuizUsersView(HttpContext.Session, quizId, out var model);
+            return View(model);
         }
 
         public IActionResult Share(int quizId)
@@ -130,24 +131,24 @@ namespace DayOfFun.Controllers
         public IActionResult Details(int id)
         {
             //TODO
-            var qdm = _applicationManager.GetQuizDetailsModel(HttpContext.Session, id);
+             _applicationManager.GetQuizDetailsModel(HttpContext.Session, id, out var qdm);
             return View(qdm);
         }
 
         [Produces("application/json")]
         public async Task<IActionResult> Suggest()
         {
-            var term = HttpContext.Request.Query["term"].ToString();
-            var questionTexts = await _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
-            // Convert the suggested query results to a list that can be displayed in the client.
-
-            // Return the list of suggestions.
-            return Ok(questionTexts);
+            return await Task.Run(() =>
+            {
+                var term = HttpContext.Request.Query["term"].ToString();
+                var questionTexts = _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
+                return Ok(questionTexts);
+            });
         }
 
         public IActionResult Error()
         {
-            return View(new ErrorViewModel());
+            return View(new ErrorViewModel() {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
         }
     }
 }

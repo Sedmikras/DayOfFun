@@ -1,11 +1,12 @@
 using DayOfFun.Models.DB;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DayOfFun.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    public static ILoggerFactory _logger = LoggerFactory.Create(builder => builder.AddConsole());
+    private static readonly ILoggerFactory Logger = LoggerFactory.Create(builder => builder.AddConsole());
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Question> Questions { get; set; }
@@ -28,7 +29,7 @@ public class ApplicationDbContext : DbContext
         base.OnConfiguring(optionsBuilder);
         optionsBuilder.UseSqlServer(
             @"Server=(localdb)\mssqllocaldb;Database=DayOfFun;Trusted_Connection=True");
-        optionsBuilder.UseLoggerFactory(_logger);
+        optionsBuilder.UseLoggerFactory(Logger);
         optionsBuilder.UseLazyLoadingProxies();
         //TODO
         optionsBuilder.EnableSensitiveDataLogging();

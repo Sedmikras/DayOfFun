@@ -3,8 +3,6 @@ using DayOfFun.Data.Services;
 using DayOfFun.Data.Services.Contract;
 using DayOfFun.managers;
 using Microsoft.EntityFrameworkCore;
-using WebApplication1.managers;
-
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -86,7 +84,6 @@ public class AuthenticationMiddleware
         if (path.Value.StartsWith("/Public") || path.Value.StartsWith("/Account"))
         {
             return _next(httpContext);
-            
         }
         else
         {
@@ -95,7 +92,7 @@ public class AuthenticationMiddleware
             {
                 if (httpContext.Session == null)
                 {
-                    httpContext.Response.Redirect("/Account/Login");    
+                    httpContext.Response.Redirect("/Account/Login");
                 }
 
                 if (httpContext.Session.GetString("UserId") == null)
@@ -107,8 +104,8 @@ public class AuthenticationMiddleware
             {
                 httpContext.Response.Redirect("/Account/Login");
             }
-            
         }
+
         return _next(httpContext);
     }
 }

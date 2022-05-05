@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebApplication1.Models;
+namespace DayOfFun.Models.View;
 
 [NotMapped]
 public class ErrorViewModel
