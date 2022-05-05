@@ -1,0 +1,29 @@
+﻿@model DayOfFun.Models.DB.Question
+@{
+    Layout = null;
+}
+@using DayOfFun.BeginCollectionItemCore
+
+@using (Html.BeginCollectionItem("AddMoreList"))
+{
+    <!-------"AddMoreList"----- this is AddMoreViewModel List Object wich is define ViewModel file -->
+    <div id="removeAddMoreDiv" class="col-xs-12 col-sm-12 form-group">
+        <div class="row">
+            <div class="col-md-4">
+                <input asp-for="Text" placeholder="Question text" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-danger btn-sm removeDiv">
+                    Remove
+                </button>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+}
+
+<script>
+    $(".removeDiv").click(function () {
+        $(this).parents("#removeAddMoreDiv").remove();
+    });
+</script>
