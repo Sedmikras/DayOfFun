@@ -15,7 +15,7 @@
                     <td>
                         @switch (quiz.State)
                         {
-                            case State.CREATED: 
+                            case State.CREATED:
                                 <a asp-controller="Quiz" asp-action="Delete" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>delete</a>
                                 <a asp-controller="Quiz" asp-action="Users" asp-route-quizId="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>users</a>
                                 <a asp-controller="Quiz" asp-action="Edit" class="btn btn-primary"><i class="bi bi-plus-circle"></i>Add questions</a>
@@ -33,7 +33,7 @@
                                 <a asp-controller="Quiz" asp-action="Details" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>view results</a>
                                 <a asp-controller="Quiz" asp-action="Users" asp-route-quizId="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>users</a>
                                 <a asp-controller="Quiz" asp-action="Delete" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>delete</a>
-                                                               
+
                                 break;
                         }
                     </td>
@@ -55,6 +55,7 @@
         <a asp-controller="Quiz" asp-action="Create" class="btn btn-success"><i class="bi bi-plus-circle"></i>Add-new</a>
     </div>
 </div>
+
 @section Scripts
 {
     <script>

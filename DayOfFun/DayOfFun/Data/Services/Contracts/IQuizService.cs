@@ -45,6 +45,7 @@ public interface IQuizService
     public bool Read(int quizId, out Quiz quiz);
     
     public bool GetQuizzesModel(ISession session, out List<QuizViewModel> model);
+    public bool GetQuizzesModel(User user, out List<QuizViewModel> model);
 
     /// <summary>
     /// Return list of quizzes from the database and for each quiz sets info

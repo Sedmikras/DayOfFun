@@ -3,6 +3,7 @@ using DayOfFun.Data.Services;
 using DayOfFun.Data.Services.Contract;
 using DayOfFun.managers;
 using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -64,7 +65,8 @@ app.UseMiddleware<AuthenticationMiddleware>();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Quiz}/{action=Index}"
+);
 
 app.Run();
 
@@ -85,25 +87,15 @@ public class AuthenticationMiddleware
         {
             return _next(httpContext);
         }
-        else
-        {
-            //TODO - BLEJU
-            try
-            {
-                if (httpContext.Session == null)
-                {
-                    httpContext.Response.Redirect("/Account/Login");
-                }
 
-                if (httpContext.Session.GetString("UserId") == null)
-                {
-                    httpContext.Response.Redirect("/Account/Login");
-                }
-            }
-            catch (Exception e)
-            {
-                httpContext.Response.Redirect("/Account/Login");
-            }
+        if (!httpContext.Session.IsAvailable)
+        {
+            httpContext.Response.Redirect("/Account/Login");
+        }
+
+        if (!httpContext.Session.TryGetValue("UserId", out _))
+        {
+            httpContext.Response.Redirect("/Account/Login");
         }
 
         return _next(httpContext);

@@ -17,6 +17,12 @@ public class PublicController : Controller
     // GET
     public IActionResult Index()
     {
+        if (_applicationManager.TemporaryLogin(HttpContext.Session.GetString("Email"), out var temoporaryUser))
+        {
+            _applicationManager.GetQuizzesForUser(temoporaryUser, out var model);
+            return View(model);
+        }
+
         return View();
     }
 

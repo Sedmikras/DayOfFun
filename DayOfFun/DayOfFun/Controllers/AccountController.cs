@@ -84,4 +84,9 @@ public class AccountController : Controller
 
         return View();
     }
+
+    public IActionResult Logout()
+    {
+        throw new NotImplementedException();
+    }
 }

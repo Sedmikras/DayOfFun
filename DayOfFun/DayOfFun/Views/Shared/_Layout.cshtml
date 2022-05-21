@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/DayOfFun.styles.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swal" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
-    <link rel="stylesheet" href="~/lib/toastr/content/toastr.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swal"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"/>
+    <link rel="stylesheet" href="~/lib/toastr/content/toastr.css"/>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
 </head>
 <body>
@@ -18,18 +18,15 @@
     <span id="successMessage" class="d-none">@TempData["successMessage"]</span>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
         <div class="container-fluid">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DayOfFun</a>
+            <a class="navbar-brand" asp-area="" asp-controller="Quiz" asp-action="Index">DayOfFun</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                <ul class="navbar-nav flex-grow-1 ml-auto">
+                    <li class="nav-item navbar-right justify-content-end text-right">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
                     </li>
                 </ul>
             </div>
@@ -43,8 +40,10 @@
 </div>
 
 <footer class="border-top footer text-muted">
-    <div class="container">
-        &copy; 2022 - DayOfFun - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <div class="container-fluid d-flex justify-content-center">
+        <div class="row text-primary">
+            <span class="col-md-6 text-secondary">Semestral work for course KIV/NET</span><span class="col-md-6 text-primary float-right">&copy; Přemysl Kouba - DayOfFun 2022</span>
+        </div>
     </div>
 </footer>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>

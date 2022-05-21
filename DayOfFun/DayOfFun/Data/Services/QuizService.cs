@@ -19,7 +19,7 @@ public class QuizService : IQuizService
         _context = context;
         _questionService = questionService;
         _userService = userService;
-    } 
+    }
 
     public bool Add(Quiz quiz, User user)
     {
@@ -56,6 +56,11 @@ public class QuizService : IQuizService
             return false;
         }
 
+        return GetQuizzesModel(u, out model);
+    }
+
+    public bool GetQuizzesModel(User u, out List<QuizViewModel> model)
+    {
         model = u.Quizzes.Select(q => q.ToViewModel()).ToList();
         return true;
     }

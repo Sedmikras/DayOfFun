@@ -29,6 +29,11 @@ public class ApplicationManager
         return _quizService.GetQuizzesModel(session, out model);
     }
 
+    public bool GetQuizzesForUser(User u, out List<QuizViewModel> model)
+    {
+        return _quizService.GetQuizzesModel(u, out model);
+    }
+
     public bool DeleteQuiz(ISession session, int quizId)
     {
         if (!_userService.GetUserFromSession(session, out var u))

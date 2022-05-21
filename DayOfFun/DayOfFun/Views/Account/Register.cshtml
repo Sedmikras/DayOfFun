@@ -5,44 +5,59 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @Html.AntiForgeryToken()
-
-<h1>Register</h1>
-
-<h4>User</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Register">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Username" class="control-label"></label>
-                <input asp-for="Username" class="form-control" />
-                <span asp-validation-for="Username" class="text-danger"></span>
+    <form asp-action="Register">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="container register">
+            <div class="row">
+                <div class="col-md-3 float-left" register-left>
+                    <div> some logo </div>
+                    <h3> Welcome to DayOfFun Quiz</h3>
+                </div>
+                <div class="col-md-9 float-right">
+                    <ul class="nav nav-tabs nav-justified mb-3" id="registerTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="register-tab" data-toggle="tab" href="" role="tab" aria-controls="home" aria-selected="true">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="login-tab" data-toggle="tab" asp-action="Login" role="tab" aria-controls="profile" aria-selected="False">Login</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-3 border-1 border-dark" id="tabContent">
+                        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="registerTab">
+                            <h3 class="register-heading"> Register </h3>
+                            <div class="row register-form justify-content-center">
+                                <div class="col">
+                                    <div class="form-group mt-3">
+                                        <label asp-for="Username" class="control-label"></label>
+                                        <input asp-for="Username" class="form-control"/>
+                                        <span asp-validation-for="Username" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label asp-for="Email" class="control-label"></label>
+                                        <input asp-for="Email" class="form-control"/>
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label asp-for="Password" class="control-label"></label>
+                                        <input asp-for="Password" class="form-control"/>
+                                        <span asp-validation-for="Password" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label asp-for="ConfirmPassword" class="control-label"></label>
+                                        <input asp-for="ConfirmPassword" class="form-control"/>
+                                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group mt-3 align-items-center justify-content-center d-flex">
+                                        <input type="submit" value="Register" class="btn btn-primary"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ConfirmPassword" class="control-label"></label>
-                <input asp-for="ConfirmPassword" class="form-control" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <button class="btn btn-secondary" onclick="checkToaster()">try toastr</button>
-                <input type="submit" value="Register" class="btn btn-primary"/>
-            </div>
-        </form>
-    </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+        </div>
+    </form>
 </div>
-
