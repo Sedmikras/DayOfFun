@@ -33,7 +33,11 @@ public class QuizService : IQuizService
 
     public bool Delete(int quizId, User? u)
     {
-        throw new NotImplementedException();
+        var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
+        if (quiz == null) return false;
+        _context.Quizzes.Remove(quiz);
+        _context.SaveChanges();
+        return true;
     }
 
     public bool Delete(Quiz quiz)

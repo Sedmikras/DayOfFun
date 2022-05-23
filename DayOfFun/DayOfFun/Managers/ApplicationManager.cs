@@ -55,7 +55,17 @@ public class ApplicationManager
             throw new Exception();
         }
 
-        var q = new Quiz(user, quizModel);
+        foreach (var question in quizModel.Questions)
+        {
+            if (question.Text == null)
+            {
+                return false;
+            }
+        }
+
+        var questions = _questionService.getQuestionsFromModel(quizModel);
+        var q = new Quiz(user, quizModel, questions);
+
         if (q == null)
         {
             //TODO
@@ -102,14 +112,13 @@ public class ApplicationManager
         model = null;
         _logger.LogError("Couldn't read user from session");
         return false;
-
     }
 
     public bool GetQuizFillModel(User user, int quizId, out QuizAnswerModel? model)
     {
         var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
         var answers = _context.Answers.Where(a => a.QuizId == quizId && a.UserId == user.Id).ToList();
-        
+
         if (quiz == null)
         {
             _logger.LogError("Couldn't get quiz wit id {QuizID}", quizId);
@@ -153,7 +162,7 @@ public class ApplicationManager
         if (quiz.State != State.INVALID)
         {
             _context.Quizzes.Update(quiz);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
             return quiz.State;
         }
         else
@@ -167,6 +176,20 @@ public class ApplicationManager
         if (_userService.GetUserFromSession(session, out var u)) return UpdateQuiz(u, model);
         _logger.LogError("Couldn't get user from session");
         return State.INVALID;
+    }
+
+    public bool GetQuizDetailsModel(User u, int quizId, out QuizDetailsModel? model)
+    {
+        if (!_quizService.Read(quizId, out var quiz))
+        {
+            _logger.LogError("Couldn't get quiz wit id {QuizID}", quizId);
+            model = null;
+            return false;
+        }
+
+        var answers = _context.Answers.Where(a => a.QuizId == quiz.Id).ToList();
+        model = new QuizDetailsModel(quiz, answers);
+        return true;
     }
 
     public bool GetQuizDetailsModel(ISession session, int quizId, out QuizDetailsModel? model)
@@ -230,9 +253,12 @@ public class ApplicationManager
     public bool GetQuizUsersView(ISession session, int quizId, out List<UserDetailsModel>? model)
     {
         Quiz q;
-        if (!_userService.GetUserFromSession(session, out _) || !_quizService.ToShareUserViewModel(quizId, out var data))
+        if (!_userService.GetUserFromSession(session, out _) ||
+            !_quizService.ToShareUserViewModel(quizId, out var data))
         {
-            _logger.LogError("Couldn't get user details model. Either session is null or quiz with ID {QuizId} does not exists", quizId);
+            _logger.LogError(
+                "Couldn't get user details model. Either session is null or quiz with ID {QuizId} does not exists",
+                quizId);
             model = null;
             return false;
         }
@@ -272,9 +298,11 @@ public class ApplicationManager
             return false;
         }
 
-        ValidateEmail(suv.Email, q, out _);
+        ValidateEmail(suv.Email, q, out var addedUser);
         current.Quizzes.Add(q);
+        q.Users.Add(addedUser);
         _quizService.ValidateModel(q);
+        _context.Quizzes.Update(q);
         _context.SaveChanges();
         return true;
     }
@@ -292,5 +320,23 @@ public class ApplicationManager
         _quizService.ValidateModel(q);
         _context.SaveChanges();
         return true;
+    }
+
+    public bool AddQuestion(User user, Question question, int quizId)
+    {
+        if(!_quizService.Read(quizId, out var q) || !_questionService.AddQuestionForQuiz(question, q))
+        {
+            _logger.LogError("Couldn't get user from session");
+            return false;
+        }
+        _quizService.ValidateModel(q);
+        _context.Quizzes.Update(q);
+        _context.SaveChanges();
+        return true;
+    }
+
+    public bool AddQuestion(ISession session, Question question, int quizId)
+    {
+        return _userService.GetUserFromSession(session, out var current) && AddQuestion(current, question, quizId);
     }
 }

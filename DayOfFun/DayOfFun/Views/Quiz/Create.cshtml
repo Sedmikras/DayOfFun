@@ -14,7 +14,7 @@
         </p>
         <div class="row">
             <div class="col-md-8 offset-2">
-                <form asp-action="Create">
+                <form asp-action="Create" onsubmit="updateIndexes()">
                     @Html.ValidationSummary(false, "", new {@class = "text-danger"})
                     <div class="form-group mb-3">
                         <label asp-for="Title" class="control-label"></label>
@@ -27,10 +27,10 @@
                             {
                                 <div id="question_@i" class="row mb-3">
                                     <div class="col-8">
-                                        @Html.TextBoxFor(m => m.Questions[i].Text, new { @class = "searchBox", @id = "azureautosuggest" })
+                                        @Html.TextBoxFor(m => m.Questions[i].Text, new { @class = "searchBox autocomplete" })
                                     </div>
                                     <div class="col-4">
-                                        <button id="btnremove" type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(this)">Delete</button>
+                                        <button id="btnremove" type="button" class="btn btn-sm btn-danger d-none" onclick="deleteQuestion('question_@i')">Delete</button>
                                     </div>
                                     <span asp-validation-for="Questions[i].Text" class="text-danger"></span>
                                 </div>
@@ -61,7 +61,7 @@
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
         $(document).ready( function () { 
-            $("#azureautosuggest").autocomplete({
+            $(".autocomplete").autocomplete({
                 source: "/Quiz/Suggest"
             });}
         );
@@ -72,27 +72,55 @@
             });
         }
         
+        function getNextId() {
+            var lastIndex = 0;
+            var elements = document.querySelectorAll("div[id*='question_']");
+            for(let i = 0; i < elements.length + 1; i++) {
+              if (!document.getElementById('question_' + i)) {
+                  return i;
+              }
+            }
+            return 0;
+        }
+        
         function addQuestion(btn) {
-            debugger;
             // prepare ID
             var idElement = document.getElementById("lastIndex")
-            var lastRowId = idElement.value;
-            var nexId = eval(lastRowId) + 1;
-            idElement.value = nexId;
+            var nextId = getNextId();
+            idElement.value = nextId;
             
             var questionsHtmlElement = document.getElementById("questions");
-            var divs = questionsHtmlElement.querySelectorAll('div[id^=question]');
+            var divs = questionsHtmlElement.querySelectorAll("div[id='question_0']");
             var divOuterHtml = divs[divs.length -1].outerHTML;
-            divOuterHtml = divOuterHtml.replaceAll('_' + lastRowId + '_', '_' + nexId + '_');
-            divOuterHtml = divOuterHtml.replaceAll('[' + lastRowId + ']', '[' + nexId + ']');
+            divOuterHtml = divOuterHtml.replaceAll('_0_', '_' + nextId + '_');
+            divOuterHtml = divOuterHtml.replaceAll('[0]', '[' + nextId + ']');
+            divOuterHtml = divOuterHtml = divOuterHtml.replaceAll('question_0', 'question_' + nextId);
+            divOuterHtml = divOuterHtml = divOuterHtml.replaceAll('d-none', '');
             
             var newRow = questionsHtmlElement.appendChild(document.createElement('div'))
             newRow.innerHTML = divOuterHtml;
             addAutocomplete(newRow.getElementsByClassName('ui-autocomplete-input'));
         };  
         
-        function deleteQuestion(btn) {
-            btn.parentElement.parentElement.remove();
+        function deleteQuestion(elementId) {
+            var element = document.getElementById(elementId);
+            var idElement = document.getElementById("lastIndex")
+            idElement.value = idElement.value -1;
+            element.parentElement.remove();
+        }
+        
+        function updateIndexes() {
+            var iterator = 0;
+            var elements = document.querySelectorAll("div[id*='question_']");
+            for (const element of elements) {
+                  var innerHtml = element.innerHTML;
+                  innerHtml = innerHtml.replaceAll(/_\d_/g, '_' + iterator + '_');
+                  innerHtml = innerHtml.replaceAll(/\[\d\]/g, '[' + iterator + ']');
+                  var value = element.querySelector('input').value;
+                  element.innerHTML = innerHtml;
+                  element.querySelector('input').value = value;
+                  iterator++;
+            }
         }
     </script>
 }

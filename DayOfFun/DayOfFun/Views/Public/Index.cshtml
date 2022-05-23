@@ -1,0 +1,52 @@
+﻿@using DayOfFun.Models.DB
+@{
+    ViewData["title"] = "List of quizes";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <table class="table">
+            <tbody>
+            @foreach (var quiz in Model)
+            {
+                <tr>
+                    <td class="align-middle">@quiz.Title</td>
+                    <td class="align-middle">@quiz.State.ToString()</td>
+                    <td>
+                        @switch (quiz.State)
+                        {
+                            case State.CREATED:
+                                break;
+                            case State.PREPARED:
+                                <a asp-controller="Public" asp-action="Fill" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>fill</a>
+                                break;
+                            case State.WAITING:
+                                <a asp-controller="Public" asp-action="Fill" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>fill</a>
+                                break;
+                            case State.FINISHED:
+                                <a asp-controller="Public" asp-action="Details" asp-route-id="@quiz.Id" class="btn btn-primary"><i class="bi bi-plus-circle"></i>view results</a>
+                                break;
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div class="modal fade d-none" id="popup" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    TEXTE TEXT TEXT
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        
+    </script>
+}

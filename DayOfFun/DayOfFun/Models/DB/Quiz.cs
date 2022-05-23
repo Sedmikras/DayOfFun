@@ -44,13 +44,20 @@ namespace DayOfFun.Models.DB
             Users = new HashSet<User>();
         }
 
-        public Quiz(User u, QuizCreateViewModel qvm)
+        public Quiz(User u, QuizCreateViewModel qvm, List<Question> questions)
         {
             Users = new HashSet<User>();
             Questions = new HashSet<Question>();
             if (qvm.Questions.Count == 0)
                 State = State.CREATED;
             State = State.PREPARED;
+            Questions.AddRange(questions);
+            foreach (var question in questions)
+            {
+                var existingQuestion = qvm.Questions.Find(q => q.Text == question.Text);
+                if (existingQuestion != null)
+                    qvm.Questions.Remove(existingQuestion);
+            }
             Questions.AddRange(qvm.Questions);
             Owner = u;
             OwnerId = u.Id;

@@ -71,6 +71,8 @@ public class QuizDetailsModel
         Title = quiz.Title;
         foreach (var question in quiz.Questions)
         {
+            var a = answers.Find(a => (a.QuestionId == question.Id) && (a.Result == Result.NO));
+            if(a!=null) continue;
             Answers.Add(question.Text, new WeightedAnswers(answers.FindAll(a => a.QuestionId == question.Id)));
         }
 

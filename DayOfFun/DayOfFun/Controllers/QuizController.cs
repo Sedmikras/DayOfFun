@@ -11,6 +11,8 @@ namespace DayOfFun.Controllers
     {
         private readonly ApplicationManager _applicationManager;
 
+        private static QuizCreateViewModel quizViewModel;
+
         public QuizController(ApplicationManager applicationManager)
         {
             _applicationManager = applicationManager;
@@ -31,24 +33,35 @@ namespace DayOfFun.Controllers
 
         public IActionResult Create()
         {
-            var qvm = new QuizCreateViewModel();
-            qvm.Questions.Add(new Question());
-            return View(qvm);
+            if (quizViewModel == null)
+            {
+                quizViewModel = new QuizCreateViewModel();
+                quizViewModel.Questions.Add(new Question());
+            }
+
+            return View(quizViewModel);
         }
 
         [HttpPost]
         public IActionResult Create(QuizCreateViewModel quiz)
         {
-            if (_applicationManager.CreateQuiz(HttpContext.Session, quiz)) return RedirectToAction(nameof(Index));
-            TempData["errorMessage"] = "Couldn't create quiz with tittle " + quiz.Title;
-            return RedirectToAction("Index");
+            if (ModelState.IsValid && _applicationManager.CreateQuiz(HttpContext.Session, quiz))
+            {
+                quizViewModel = null;
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["errorMessage"] =
+                "Cannot create quiz:" + quiz.Title + Environment.NewLine + "Questions were not filled!";
+            quizViewModel = quiz;
+            return Create();
         }
 
         public IActionResult Delete(int id)
         {
             if (_applicationManager.DeleteQuiz(HttpContext.Session, id))
             {
-                return RedirectToAction(nameof(Index));    
+                return RedirectToAction(nameof(Index));
             }
             else
             {
@@ -86,6 +99,30 @@ namespace DayOfFun.Controllers
             return View(model);
         }
 
+        public IActionResult Update(int quizId)
+        {
+            return PartialView("_AddQuestionsModalPartialView", new Question());
+        }
+
+        [HttpPost]
+        public IActionResult Update(Question q)
+        {
+            var quizId = q.Id;
+            q.Id = 0;
+            if (!_applicationManager.AddQuestion(HttpContext.Session, q, quizId))
+            {
+                var errorMessage = "cannot add question for quiz " + quizId;
+                Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+                return Json(new {message = errorMessage});
+            }
+            else
+            {
+                var successMessage = "Successfully added question:" + q.Text;
+                Response.StatusCode = (int) HttpStatusCode.OK;
+                return Json(new {message = successMessage});
+            }
+        }
+
         public IActionResult Share(int quizId)
         {
             return PartialView("_ShareWithUserPartialView", new User());
@@ -101,12 +138,21 @@ namespace DayOfFun.Controllers
                 var successMessage = "Successfully added user with email:" + suv.Email;
                 TempData["successMessage"] = successMessage;
                 Response.StatusCode = (int) HttpStatusCode.OK;
-                return Json(new { message = successMessage });
+                return Json(new {message = successMessage});
             }
 
-            //  When I want to return error:
-            Response.StatusCode = (int) HttpStatusCode.OK;
-            return Json("Message sent");
+            string errorMessage;
+            if (suv.Email != null)
+            {
+                errorMessage = "Email is not in valid form !";
+            }
+            else
+            {
+                errorMessage = "Email is required";
+            }
+            TempData["errorMessage"] = "ErrorMessage";
+            Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+            return Json(new {message = errorMessage});
         }
 
         /// <summary>
@@ -115,7 +161,7 @@ namespace DayOfFun.Controllers
         /// <param name="email"></param>
         /// <param name="quizId"></param>
         /// <returns></returns>
-        public IActionResult Exclude(string  email, int quizId)
+        public IActionResult Exclude(string email, int quizId)
         {
             if (!_applicationManager.RemoveUser(email, quizId))
             {
@@ -123,15 +169,16 @@ namespace DayOfFun.Controllers
             }
             else
             {
-                TempData["successMessage"] = "User successfully removed from quiz";    
+                TempData["successMessage"] = "User successfully removed from quiz";
             }
+
             return RedirectToAction("Users", new {quizId});
         }
 
         public IActionResult Details(int id)
         {
             //TODO
-             _applicationManager.GetQuizDetailsModel(HttpContext.Session, id, out var qdm);
+            _applicationManager.GetQuizDetailsModel(HttpContext.Session, id, out var qdm);
             return View(qdm);
         }
 
@@ -141,7 +188,7 @@ namespace DayOfFun.Controllers
             return await Task.Run(() =>
             {
                 var term = HttpContext.Request.Query["term"].ToString();
-                var questionTexts = _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term);
+                var questionTexts = _applicationManager.SuggestQuestionsAsync(HttpContext.Session, term).Result;
                 return Ok(questionTexts);
             });
         }

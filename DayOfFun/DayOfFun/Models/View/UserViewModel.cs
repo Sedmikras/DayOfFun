@@ -43,6 +43,7 @@ public class ShareUserViewModel
     [PersonalData]
     [Column(TypeName = "nvarchar(255)")]
     [Required(ErrorMessage = "Email is required")]
+    [RegularExpression(@"^([0-9a-zA-Z]([-\.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$")]
     public string Email { get; set; }
     
     public int QuizId { get; set; }

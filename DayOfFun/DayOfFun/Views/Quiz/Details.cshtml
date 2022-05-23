@@ -6,21 +6,29 @@
 }
 
 <h2>@Model.Title</h2>
+<div class="row">
+    <div class="col-9">Question text</div>
+    <div class="col-1">Score</div>
+    <div class="col-1">Number of respondents</div>
+</div>
 @foreach (var qdm in Model.Answers)
 {
     <div class="row">
         @if (qdm.Value.IsDoable)
         {
-            <div class="col-9">
+            <div class="col-9 questionText">
                 @qdm.Key
             </div>
             /*TODO debug*/
-            <div class="col-1">
+            <div class="col-1 score">
                 @qdm.Value.Score
             </div>
-            <div class="col-1">
+            <div class="col-1 respondents">
                 @qdm.Value.Respondents
             </div>
         }
     </div>
 }
+<div>
+<a asp-action="Index"> Back to List</a>
+</div>

@@ -9,7 +9,7 @@
 <h1>@Model.Title</h1>
 <hr/>
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-4 container-fluid justify-content-center">
         <form asp-action="Fill">
             <div id="necessities">
                 @Html.ValidationSummary(false, "", new {@class = "text-danger"})
@@ -18,7 +18,7 @@
                 <input asp-for="QuizId" value="@Model.QuizId" type="hidden"/>
             </div>
             <div id="questions">
-                @for (int i = 0; i < Model.Questions.Count; i++)
+                @for (var i = 0; i < Model.Questions.Count; i++)
                 {
                     <div class="row">
                         <input asp-for="Questions[i].Id" type="hidden">
@@ -46,7 +46,7 @@
                 }
             </div>
             <button type="button" class="btn btn-primary" data-toggle="ajax-modal" data-target="#addUser"
-                            data-url="@Url.Action("Share")">Add Question</button>
+                            data-url="@Url.Action("Update")">Add Question</button>
             <input type="submit" value="Submit Form" class="btn btn-primary btn-outline-success float-right"/>
         </form>
     </div>
@@ -63,13 +63,36 @@
         $(document).ready( function() {
             var PlaceHolderElement = $('#PlaceHolderHere');
             $('button[data-toggle="ajax-modal"]').click(function (event) {
+                debugger;
                 var url = $(this).data('url') + "?" + document.URL.split("?")[1];
                 $.get(url).done(function (data) {
                     PlaceHolderElement.html(data);
                     PlaceHolderElement.find('.modal').modal('show');
                 })
             })
+            
+            PlaceHolderElement.on('click', '[data-save="modal"]', function (event) {
+            var form = $(this).parents('.modal').find('form');
+            var actionUrl = form.attr('action');
+            var sendData = form.serialize() + "&" + document.URL.split("?")[1];
+            $.post(actionUrl, sendData)
+                .done(function (data) {
+                    toastr.success(data.message); 
+                    PlaceHolderElement.find('.modal').modal('hide');
+                    location.reload();
+                })
+                .fail(function (data) {
+                    debugger;
+                    toastr.error(data.responseJSON.message);
+                })
         })
+        
+        PlaceHolderElement.on('click', '[data-dismiss="modal"]', function (event) {
+            PlaceHolderElement.find('.modal').modal('hide');
+        })
+        })
+        
+        
     </script>
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

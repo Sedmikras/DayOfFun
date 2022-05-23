@@ -91,11 +91,14 @@
                 var sendData = form.serialize() + "&" + document.URL.split("?")[1];
                 $.post(actionUrl, sendData)
                     .done(function (data) {
-                        toastr.success(data["message"].toString()); 
+                        toastr.success(data.message); 
                         PlaceHolderElement.find('.modal').modal('hide');
                         location.reload();
                     })
-                    .fail(function (data) {toastr.error(data["message"].toString());})
+                    .fail(function (data) {
+                        debugger;
+                        toastr.error(data.responseJSON.message);
+                    })
             })
             
             PlaceHolderElement.on('click', '[data-dismiss="modal"]', function (event) {

@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace DayOfFun.Models.DB
 {
+    [Index(nameof(Text), IsUnique = true)]
     public class Question
     {
         [ForeignKey("QuestionId")] public int Id { get; set; }
@@ -10,6 +12,7 @@ namespace DayOfFun.Models.DB
         [Display(Name = "Question text")]
         [Required(ErrorMessage = "Question text is required")]
         [StringLength(1000, MinimumLength = 1, ErrorMessage = "text must be between 1 and 1000 chars")]
+        
         public string Text { get; set; }
 
         public bool Enabled { get; set; }
