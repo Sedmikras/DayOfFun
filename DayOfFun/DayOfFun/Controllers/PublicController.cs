@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using DayOfFun.managers;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
@@ -14,16 +15,23 @@ public class PublicController : Controller
     {
         _applicationManager = applicationManager;
     }
+
     // GET
-    public IActionResult Index()
+    public IActionResult Index(string email)
     {
-        if (_applicationManager.TemporaryLogin(HttpContext.Session.GetString("Email"), out var temoporaryUser))
+        string emailVar = email == null ? HttpContext.Session.GetString("Email") : email;
+        if (_applicationManager.TemporaryLogin(emailVar, out var temoporaryUser))
         {
             _applicationManager.GetQuizzesForUser(temoporaryUser, out var model);
+            if (!HttpContext.Session.TryGetValue("Email", out _))
+            {
+                HttpContext.Session.SetString("Email", email);
+            }
+
             return View(model);
         }
 
-        return View();
+        return RedirectToAction("Login", "Account");
     }
 
     public async Task<IActionResult> Fill(int id)
@@ -31,11 +39,13 @@ public class PublicController : Controller
         string email = Request.Query["email"];
         User? u;
         QuizAnswerModel qam;
-        if (_applicationManager.TemporaryLogin(email, out u)) {
+        if (_applicationManager.TemporaryLogin(email, out u))
+        {
             HttpContext.Session.SetString("Email", email);
             _applicationManager.GetQuizFillModel(u, id, out qam);
             return View(qam);
-        } 
+        }
+
         return RedirectToAction("Error");
     }
 
@@ -48,8 +58,9 @@ public class PublicController : Controller
             User? u;
             if (_applicationManager.TemporaryLogin(HttpContext.Session.GetString("Email"), out u))
             {
-                _applicationManager.UpdateQuiz(u, model);    
+                _applicationManager.UpdateQuiz(u, model);
             }
+
             return RedirectToAction(nameof(Index));
         }
         else
@@ -58,14 +69,52 @@ public class PublicController : Controller
         }
     }
 
-    public IActionResult Login()
+    public IActionResult Details(int id)
     {
-        return View();
+        string emailVar = HttpContext.Session.GetString("Email");
+        if (_applicationManager.TemporaryLogin(emailVar, out var temoporaryUser))
+        {
+            if (_applicationManager.GetQuizDetailsModel(temoporaryUser, id, out var qdm))
+            {
+                return View(qdm);
+            }
+            else
+            {
+                return RedirectToAction("Login","Account");
+            }
+        }
+
+        return RedirectToAction("Login","Account");
+    }
+    
+    public IActionResult Update(int quizId)
+    {
+        return PartialView("_AddQuestionsModalPartialView", new Question());
+    }
+
+    [HttpPost]
+    public IActionResult Update(Question q)
+    {
+        var quizId = q.Id;
+        q.Id = 0;
+        var emailVar = HttpContext.Session.GetString("Email");
+        if (_applicationManager.TemporaryLogin(emailVar, out var temoporaryUser) )
+        {
+            if(_applicationManager.AddQuestion(temoporaryUser, q, quizId))
+            {
+                var successMessage = "Successfully added question:" + q.Text;
+                Response.StatusCode = (int) HttpStatusCode.OK;
+                return Json(new {message = successMessage});
+               
+            }    
+        }
+        var errorMessage = "cannot add question for quiz " + quizId;
+        Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+        return Json(new {message = errorMessage});
     }
 
     public IActionResult Error()
     {
         return View(new ErrorViewModel() {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
     }
-
 }
