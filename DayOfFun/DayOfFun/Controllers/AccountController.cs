@@ -87,6 +87,7 @@ public class AccountController : Controller
 
     public IActionResult Logout()
     {
-        throw new NotImplementedException();
+        HttpContext.Session.Clear();
+        return RedirectToAction("Login", "Account");
     }
 }
