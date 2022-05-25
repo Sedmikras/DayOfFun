@@ -1,10 +1,13 @@
 ﻿using DayOfFun.Data;
-using DayOfFun.Data.Services.Contract;
+using DayOfFun.Data.Services.Contracts;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
 namespace DayOfFun.managers;
 
+/// <summary>
+/// Main logic class - sadly, without interface = chaotic development
+/// </summary>
 public class ApplicationManager
 {
     private readonly ApplicationDbContext _context;
@@ -18,22 +21,40 @@ public class ApplicationManager
     public ApplicationManager(IUserService userService, IQuizService quizService, IQuestionService questionService,
         ApplicationDbContext context)
     {
-        this._userService = userService;
-        this._questionService = questionService;
-        this._quizService = quizService;
-        this._context = context;
+        _userService = userService;
+        _questionService = questionService;
+        _quizService = quizService;
+        _context = context;
     }
 
+    /// <summary>
+    /// Returns quizzes for user
+    /// </summary>
+    /// <param name="session">Session with users credentials</param>
+    /// <param name="model">Simplified view of quizzes</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizzesForUser(ISession session, out List<QuizViewModel> model)
     {
         return _quizService.GetQuizzesModel(session, out model);
     }
 
+    /// <summary>
+    /// Returns quizzes for user
+    /// </summary>
+    /// <param name="u">instance of user</param>
+    /// <param name="model">Simplified view of quizzes</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizzesForUser(User u, out List<QuizViewModel> model)
     {
         return _quizService.GetQuizzesModel(u, out model);
     }
 
+    /// <summary>
+    /// Deletes quiz from application (DB)
+    /// </summary>
+    /// <param name="session">Session with users credentials</param>
+    /// <param name="quizId">quiz id</param>
+    /// <returns>true if success / false if error</returns>
     public bool DeleteQuiz(ISession session, int quizId)
     {
         if (!_userService.GetUserFromSession(session, out var u))
@@ -46,66 +67,47 @@ public class ApplicationManager
         return true;
     }
 
+    /// <summary>
+    /// Creates quiz - inserts into DB
+    /// </summary>
+    /// <param name="session">Session with users credentials</param>
+    /// <param name="quizModel">data from users input</param>
+    /// <returns>true if success / false if error</returns>
     public bool CreateQuiz(ISession session, QuizCreateViewModel quizModel)
     {
         //var numberOfQuestion = quizModel.ViewCollection;
         if (!_userService.GetUserFromSession(session, out var user))
         {
-            //TODO
-            throw new Exception();
+            _logger.LogError("Couldn't read user from session");
+            return false;
         }
 
-        foreach (var question in quizModel.Questions)
+        if (quizModel.Questions.Any(question => question.Text == null))
         {
-            if (question.Text == null)
-            {
-                return false;
-            }
+            return false;
         }
 
-        var questions = _questionService.getQuestionsFromModel(quizModel);
+        var questions = _questionService.GetQuestionsFromModel(quizModel);
         var q = new Quiz(user, quizModel, questions);
 
         if (q == null)
         {
-            //TODO
-            throw new Exception();
+            _logger.LogError("Couldn't create quiz");
+            return false;
         }
 
         _context.Quizzes.Add(q);
         _context.SaveChanges();
-
-        /*if (ValidateQuiz(quizModel) == State.INVALID)
-        {
-            //TODO
-            throw new Exception();
-        }
-        */
-
         return true;
     }
 
-    public bool GetQuizFillModel(ISession session, int quizId, List<Answer> answers, out QuizAnswerModel? model)
-    {
-        if (!_userService.GetUserFromSession(session, out var user))
-        {
-            _logger.LogError("Couldn't read user from session");
-            model = null;
-            return false;
-        }
-
-        var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
-        if (quiz != null)
-        {
-            model = quiz.ToAnswerModel(user, answers);
-            return true;
-        }
-
-        _logger.LogError("Couldn't find quiz with id: {QuizId}", quizId);
-        model = null;
-        return false;
-    }
-
+    /// <summary>
+    /// Prepares quiz to be filled - creates answers and propagate to user
+    /// </summary>
+    /// <param name="session">Session with users credentials</param>
+    /// <param name="quizId">quiz ID</param>
+    /// <param name="model">Fill model for quiz - questions with answers</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizFillModel(ISession session, int quizId, out QuizAnswerModel? model)
     {
         if (_userService.GetUserFromSession(session, out var u)) return GetQuizFillModel(u, quizId, out model);
@@ -114,6 +116,13 @@ public class ApplicationManager
         return false;
     }
 
+    /// <summary>
+    /// Prepares quiz to be filled - creates answers and propagate to user
+    /// </summary>
+    /// <param name="user">user instance</param>
+    /// <param name="quizId">quiz ID</param>
+    /// <param name="model">Fill model for quiz - questions with answers</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizFillModel(User user, int quizId, out QuizAnswerModel? model)
     {
         var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
@@ -130,6 +139,12 @@ public class ApplicationManager
         return true;
     }
 
+    /// <summary>
+    /// Updates quiz and validates it (change is propagated to the DB)
+    /// </summary>
+    /// <param name="u">user instance</param>
+    /// <param name="model">user input model</param>
+    /// <returns>State of quiz - if error = STATE.INVALID</returns>
     public State UpdateQuiz(User u, QuizAnswerModel model)
     {
         var quizId = model.QuizId;
@@ -171,6 +186,12 @@ public class ApplicationManager
         }
     }
 
+    /// <summary>
+    /// gets user from session and calls same method with user as parameter
+    /// </summary>
+    /// <param name="session">user credentials in session</param>
+    /// <param name="model">user input model</param>
+    /// <returns>State of quiz - if error = STATE.INVALID</returns>
     public State UpdateQuiz(ISession session, QuizAnswerModel model)
     {
         if (_userService.GetUserFromSession(session, out var u)) return UpdateQuiz(u, model);
@@ -178,6 +199,13 @@ public class ApplicationManager
         return State.INVALID;
     }
 
+    /// <summary>
+    /// prepares details of quiz from db and returns them in model
+    /// </summary>
+    /// <param name="u">user instance</param>
+    /// <param name="quizId">id of the quiz</param>
+    /// <param name="model">details about quiz model</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizDetailsModel(User u, int quizId, out QuizDetailsModel? model)
     {
         if (!_quizService.Read(quizId, out var quiz))
@@ -192,6 +220,13 @@ public class ApplicationManager
         return true;
     }
 
+    /// <summary>
+    /// prepares details of quiz from db and returns them in model
+    /// </summary>
+    /// <param name="session">user credentials in session</param>
+    /// <param name="quizId">id of the quiz</param>
+    /// <param name="model">details about quiz model</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizDetailsModel(ISession session, int quizId, out QuizDetailsModel? model)
     {
         if (!_userService.GetUserFromSession(session, out _))
@@ -213,28 +248,25 @@ public class ApplicationManager
         return true;
     }
 
+    /// <summary>
+    /// Temporary login for users coming from public access. 
+    /// </summary>
+    /// <param name="email">email of the user</param>
+    /// <param name="user">OUT user - instance from DB</param>
+    /// <returns>true if success / false if error</returns>
     public bool TemporaryLogin(string email, out User user)
     {
         return _userService.GetUserByEmail(email, out user);
     }
 
-    public void Share(ISession session, string email)
-    {
-        if (!_userService.GetUserFromSession(session, out _))
-        {
-            _logger.LogError("Couldn't get user from session");
-            return;
-        }
+    
 
-        if (_userService.GetUserByEmail(email, out _))
-        {
-        }
-        else
-        {
-            _userService.AddTemporaryUser(email);
-        }
-    }
-
+    /// <summary>
+    /// Async suggest question text when filling quiz
+    /// </summary>
+    /// <param name="session">user credentials in session</param>
+    /// <param name="term">start of the text </param>
+    /// <returns>List of question texts</returns>
     public async Task<List<string>> SuggestQuestionsAsync(ISession session, string term)
     {
         if (!_userService.GetUserFromSession(session, out _))
@@ -249,7 +281,13 @@ public class ApplicationManager
         });
     }
 
-    //TODO - asi bude potŘeba to trochu změnit
+    /// <summary>
+    /// returns info about users concerned in given quiz
+    /// </summary>
+    /// <param name="session">user credentials in session</param>
+    /// <param name="quizId">quiz id</param>
+    /// <param name="model">output - model with users info</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizUsersView(ISession session, int quizId, out List<UserDetailsModel>? model)
     {
         Quiz q;
@@ -266,12 +304,13 @@ public class ApplicationManager
         model = data != null ? data : new List<UserDetailsModel>();
         return true;
     }
-
-    /*public async Task<IActionResult> ValidateEmail(HttpContext httpContext, ShareUserViewModel suv)
-    {
-        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-        return await _context.Users.Where(suv.Email == suv.Email).Any()
-    }*/
+    
+    /// <summary>
+    /// Validates email - if user with given email is in DB
+    /// </summary>
+    /// <param name="email">email of the user (public access)</param>
+    /// <param name="q">quiz that will be added to given user</param>
+    /// <param name="user">output instance of user</param>
     private void ValidateEmail(string email, Quiz q, out User? user)
     {
         var u = _context.Users.FirstOrDefault(u => u.Email == email);
@@ -290,6 +329,12 @@ public class ApplicationManager
         user = u;
     }
 
+    /// <summary>
+    /// shares quiz with user given in model (contains user email)
+    /// </summary>
+    /// <param name="session">user credentials in session</param>
+    /// <param name="suv">model</param>
+    /// <returns>true if success / false if error</returns>
     public bool ShareQuiz(ISession session, ShareUserViewModel suv)
     {
         if (!_userService.GetUserFromSession(session, out var current) || !_quizService.Read(suv.QuizId, out var q))
@@ -307,6 +352,12 @@ public class ApplicationManager
         return true;
     }
 
+    /// <summary>
+    /// Removes user from quiz so the user wont be participating
+    /// </summary>
+    /// <param name="email">email of the user</param>
+    /// <param name="quizId">id of the quiz</param>
+    /// <returns>true if success / false if error</returns>
     public bool RemoveUser(string email, int quizId)
     {
         if (!_userService.GetUserByEmail(email, out var u) || !_quizService.Read(quizId, out var q))
@@ -322,6 +373,13 @@ public class ApplicationManager
         return true;
     }
 
+    /// <summary>
+    /// Adds question to the quiz
+    /// </summary>
+    /// <param name="user">user that is performing this action</param>
+    /// <param name="question">question that will be added</param>
+    /// <param name="quizId">id of the quiz that will be updated</param>
+    /// <returns>true if success / false if error</returns>
     public bool AddQuestion(User user, Question question, int quizId)
     {
         if(!_quizService.Read(quizId, out var q) || !_questionService.AddQuestionForQuiz(question, q))
@@ -335,6 +393,13 @@ public class ApplicationManager
         return true;
     }
 
+    /// <summary>
+    /// Adds question to the quiz
+    /// </summary>
+    /// <param name="user">user credentials in session</param>
+    /// <param name="question">question that will be added</param>
+    /// <param name="quizId">id of the quiz that will be updated</param>
+    /// <returns>true if success / false if error</returns>
     public bool AddQuestion(ISession session, Question question, int quizId)
     {
         return _userService.GetUserFromSession(session, out var current) && AddQuestion(current, question, quizId);

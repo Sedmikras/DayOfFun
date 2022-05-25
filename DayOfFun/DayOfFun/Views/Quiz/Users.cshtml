@@ -96,7 +96,6 @@
                         location.reload();
                     })
                     .fail(function (data) {
-                        debugger;
                         toastr.error(data.responseJSON.message);
                     })
             })
@@ -107,8 +106,7 @@
         })
             
         function copyURLToCLipboard(clickedElement) {
-            debugger;
-            var text = clickedElement.getAttribute('data-value') + '?' + document.URL.split("?quizId=")[1] + "&email=" + encodeURIComponent(clickedElement.getAttribute('email'));
+            var text = clickedElement.getAttribute('data-value') + '?id=' + document.URL.split("?quizId=")[1] + "&email=" + encodeURIComponent(clickedElement.getAttribute('email'));
             navigator.clipboard.writeText(text).then(function () {
                 toastr.success('It worked! Do a CTRL - V to paste');
             }, function () {

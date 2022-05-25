@@ -63,7 +63,6 @@
         $(document).ready( function() {
             var PlaceHolderElement = $('#PlaceHolderHere');
             $('button[data-toggle="ajax-modal"]').click(function (event) {
-                debugger;
                 var url = $(this).data('url') + "?" + document.URL.split("?")[1];
                 $.get(url).done(function (data) {
                     PlaceHolderElement.html(data);
@@ -82,7 +81,6 @@
                     location.reload();
                 })
                 .fail(function (data) {
-                    debugger;
                     toastr.error(data.responseJSON.message);
                 })
         })

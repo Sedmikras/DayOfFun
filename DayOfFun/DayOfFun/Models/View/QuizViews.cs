@@ -4,6 +4,10 @@ using DayOfFun.Models.DB;
 
 namespace DayOfFun.Models.View;
 
+/// <summary>
+/// In this file there are all quiz variants used in views 
+/// </summary>
+/// 
 [NotMapped]
 public class QuizAnswerModel
 {
@@ -33,7 +37,9 @@ public class QuizAnswerModel
         }
     }
 }
-
+/// <summary>
+/// AnswerView for filling quiz
+/// </summary>
 public class AnswerView
 {
     [Display(Name = "Question answer")]
@@ -54,11 +60,17 @@ public class AnswerView
     public int QuestionId { get; set; }
 }
 
+/// <summary>
+/// Variant for creating quiz
+/// </summary>
 public class QuizCreateViewModel : QuizViewModel
 {
     public virtual List<Question> Questions { get; set; } = new List<Question>();
 }
 
+/// <summary>
+/// Variant for showing details of quiz
+/// </summary>
 public class QuizDetailsModel
 {
     public string Title { get; set; }
@@ -80,6 +92,9 @@ public class QuizDetailsModel
     }
 }
 
+/// <summary>
+/// Weighted answers - to get score of the filled quiz :)
+/// </summary>
 public class WeightedAnswers
 {
     public double Score { get; } = 0;

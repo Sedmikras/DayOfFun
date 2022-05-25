@@ -1,6 +1,6 @@
 using DayOfFun.Data;
 using DayOfFun.Data.Services;
-using DayOfFun.Data.Services.Contract;
+using DayOfFun.Data.Services.Contracts;
 using DayOfFun.managers;
 using Microsoft.EntityFrameworkCore;
 

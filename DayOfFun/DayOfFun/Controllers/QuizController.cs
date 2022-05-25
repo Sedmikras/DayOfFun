@@ -7,17 +7,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DayOfFun.Controllers
 {
+    /// <summary>
+    /// Controller for Quizzes
+    /// </summary>
     public class QuizController : Controller
     {
         private readonly ApplicationManager _applicationManager;
 
-        private static QuizCreateViewModel quizViewModel;
+        private static QuizCreateViewModel _quizViewModel;
 
         public QuizController(ApplicationManager applicationManager)
         {
             _applicationManager = applicationManager;
         }
 
+        /// <summary>
+        /// GET Index page after login - quizzes for users
+        /// </summary>
+        /// <returns>View with all quizzes for user</returns>
         public IActionResult Index()
         {
             if (_applicationManager.GetQuizzesForUser(HttpContext.Session, out var model))
@@ -31,32 +38,45 @@ namespace DayOfFun.Controllers
             }
         }
 
+        /// <summary>
+        /// GET - Create quiz view
+        /// </summary>
+        /// <returns>Create View</returns>
         public IActionResult Create()
         {
-            if (quizViewModel == null)
-            {
-                quizViewModel = new QuizCreateViewModel();
-                quizViewModel.Questions.Add(new Question());
-            }
+            if (_quizViewModel != null) return View(_quizViewModel);
+            _quizViewModel = new QuizCreateViewModel();
+            _quizViewModel.Questions.Add(new Question());
 
-            return View(quizViewModel);
+            return View(_quizViewModel);
         }
 
+        
+        /// <summary>
+        /// POST - create quiz
+        /// </summary>
+        /// <param name="quiz">quiz model with title and questions</param>
+        /// <returns>redirect to index if success / error messages on view</returns>
         [HttpPost]
         public IActionResult Create(QuizCreateViewModel quiz)
         {
             if (ModelState.IsValid && _applicationManager.CreateQuiz(HttpContext.Session, quiz))
             {
-                quizViewModel = null;
+                _quizViewModel = null;
                 return RedirectToAction(nameof(Index));
             }
 
             TempData["errorMessage"] =
                 "Cannot create quiz:" + quiz.Title + Environment.NewLine + "Questions were not filled!";
-            quizViewModel = quiz;
+            _quizViewModel = quiz;
             return Create();
         }
 
+        /// <summary>
+        /// GET Delete action - for deleting quizzes from application
+        /// </summary>
+        /// <param name="id">quiz id</param>
+        /// <returns>redirection to Index if success / back to view with errors</returns>
         public IActionResult Delete(int id)
         {
             if (_applicationManager.DeleteQuiz(HttpContext.Session, id))
@@ -70,13 +90,21 @@ namespace DayOfFun.Controllers
             }
         }
 
+        /// <summary>
+        /// GET - Fill action of the quiz (fill questions) 
+        /// </summary>
+        /// <param name="id">quiz ID</param>
+        /// <returns>redirect to Fill view / error</returns>
         public IActionResult Fill(int id)
         {
-            //TODO
-            _applicationManager.GetQuizFillModel(HttpContext.Session, id, out var qam);
-            return View(qam);
+            return !_applicationManager.GetQuizFillModel(HttpContext.Session, id, out var qam) ? Error() : View(qam);
         }
 
+        /// <summary>
+        /// POST - saves data from model to the DB (application)
+        /// </summary>
+        /// <param name="model">filled quiz (filled questions) </param>
+        /// <returns>redirection to index if success / return to the page with errors</returns>
         [HttpPost]
         public IActionResult Fill(QuizAnswerModel model)
         {
@@ -88,22 +116,36 @@ namespace DayOfFun.Controllers
             }
             else
             {
+                TempData["errorMessage"] = "Cannot fill quiz";
                 return View(model);
             }
         }
 
+        /// <summary>
+        /// GET - info about users that are participating in quiz
+        /// </summary>
+        /// <param name="quizId">id of the quiz</param>
+        /// <returns>user info view / error</returns>
         public IActionResult Users(int quizId)
         {
-            //TODO
-            _applicationManager.GetQuizUsersView(HttpContext.Session, quizId, out var model);
-            return View(model);
+            return !_applicationManager.GetQuizUsersView(HttpContext.Session, quizId, out var model) ? Error() : View(model);
         }
 
+        /// <summary>
+        /// Add question partial view
+        /// </summary>
+        /// <param name="quizId">id of the quiz</param>
+        /// <returns>partial view used in modal window</returns>
         public IActionResult Update(int quizId)
         {
             return PartialView("_AddQuestionsModalPartialView", new Question());
         }
 
+        /// <summary>
+        /// POST - add question for quiz
+        /// </summary>
+        /// <param name="q">question to be added to the quiz</param>
+        /// <returns>Response - OK if success, 500 if error. In the body is JSON with error/success message</returns>
         [HttpPost]
         public IActionResult Update(Question q)
         {
@@ -123,15 +165,24 @@ namespace DayOfFun.Controllers
             }
         }
 
+        /// <summary>
+        /// GET - Share controller - view to share quiz with users
+        /// </summary>
+        /// <param name="quizId">id of the quiz</param>
+        /// <returns>partial view used in modal window</returns>
         public IActionResult Share(int quizId)
         {
             return PartialView("_ShareWithUserPartialView", new User());
         }
 
+        /// <summary>
+        /// POST - add user for the quiz. Used in modal window
+        /// </summary>
+        /// <param name="suv">model with user email and quiz id</param>
+        /// <returns>Response - OK if success, 500 if error. In the body is JSON with error/success message</returns>
         [HttpPost]
         public IActionResult Share(ShareUserViewModel suv)
         {
-            //TODO
             if (ModelState.IsValid)
             {
                 _applicationManager.ShareQuiz(HttpContext.Session, suv);
@@ -142,14 +193,7 @@ namespace DayOfFun.Controllers
             }
 
             string errorMessage;
-            if (suv.Email != null)
-            {
-                errorMessage = "Email is not in valid form !";
-            }
-            else
-            {
-                errorMessage = "Email is required";
-            }
+            errorMessage = suv.Email != null ? "Email is not in valid form !" : "Email is required";
             TempData["errorMessage"] = "ErrorMessage";
             Response.StatusCode = (int) HttpStatusCode.InternalServerError;
             return Json(new {message = errorMessage});
@@ -158,9 +202,9 @@ namespace DayOfFun.Controllers
         /// <summary>
         /// Should be HttpDelete but browser does not support it only from javascript and im kinda lazy to do it JS way
         /// </summary>
-        /// <param name="email"></param>
-        /// <param name="quizId"></param>
-        /// <returns></returns>
+        /// <param name="email">email of the user</param>
+        /// <param name="quizId">id of the quiz</param>
+        /// <returns>OK message if ok / error message if NOK</returns>
         public IActionResult Exclude(string email, int quizId)
         {
             if (!_applicationManager.RemoveUser(email, quizId))
@@ -175,13 +219,20 @@ namespace DayOfFun.Controllers
             return RedirectToAction("Users", new {quizId});
         }
 
+        /// <summary>
+        /// GET Details about quiz - which users have filled it and so on.
+        /// </summary>
+        /// <param name="id">id of the quiz. Also needed is email (from session) to temporarily log user</param>
+        /// <returns>Details about quizzes / errors to user</returns>
         public IActionResult Details(int id)
         {
-            //TODO
-            _applicationManager.GetQuizDetailsModel(HttpContext.Session, id, out var qdm);
-            return View(qdm);
+            return !_applicationManager.GetQuizDetailsModel(HttpContext.Session, id, out var qdm) ? Error() : View(qdm);
         }
 
+        /// <summary>
+        /// GET - only real async method that suggest questions texts for user
+        /// </summary>
+        /// <returns>Status OK and in the body, question texts serialized to JSON</returns>
         [Produces("application/json")]
         public async Task<IActionResult> Suggest()
         {
@@ -193,6 +244,10 @@ namespace DayOfFun.Controllers
             });
         }
 
+        /// <summary>
+        /// Error view
+        /// </summary>
+        /// <returns>error view</returns>
         public IActionResult Error()
         {
             return View(new ErrorViewModel() {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});

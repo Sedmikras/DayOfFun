@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using NUnit.Framework;
 
 namespace DayOfFun.Models.View;
-
+/// <summary>
+/// In this file there are variants of users used in views
+/// </summary>
 public class UserViewModel
 {
     [PersonalData]
@@ -38,6 +40,9 @@ public class UserViewModel
     }
 }
 
+/// <summary>
+/// Share user view - needed only quiz ID and email
+/// </summary>
 public class ShareUserViewModel
 {
     [PersonalData]
@@ -49,6 +54,9 @@ public class ShareUserViewModel
     public int QuizId { get; set; }
 }
 
+/// <summary>
+/// User details model - info about user and his commitment to the quiz (if he started the quiz and so on)
+/// </summary>
 public class UserDetailsModel
 {
     public string Username { get; set; }

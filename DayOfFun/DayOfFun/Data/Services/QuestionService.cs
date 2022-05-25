@@ -1,4 +1,4 @@
-﻿using DayOfFun.Data.Services.Contract;
+﻿using DayOfFun.Data.Services.Contracts;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
@@ -7,49 +7,32 @@ namespace DayOfFun.Data.Services;
 public class QuestionService : IQuestionService
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<QuestionService> _logger;
 
-    public QuestionService(ApplicationDbContext context, ILogger<QuestionService> logger)
+    public QuestionService(ApplicationDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
+    /// <summary>
+    /// Add question to the quiz
+    /// </summary>
+    /// <param name="question">question</param>
+    /// <param name="quiz">quiz</param>
+    /// <returns>true if success / false if not successful</returns>
     public bool AddQuestionForQuiz(Question question, Quiz quiz)
     {
-        var result = _context.Questions.FirstOrDefault(q => q.Text == question.Text);
-        if (result == null) result = question;
+        var result = _context.Questions.FirstOrDefault(q => q.Text == question.Text) ?? question;
         quiz.Questions.Add(result);
         return true;
     }
 
-    public bool AddQuestionsForQuiz(Quiz quiz)
+    /// <summary>
+    /// returns list of questions from the DB where questions text is given in parameter (model)
+    /// </summary>
+    /// <param name="quizModel">list of questions from users input</param>
+    /// <returns>List of questions that are in DB</returns>
+    public List<Question> GetQuestionsFromModel(QuizCreateViewModel quizModel)
     {
-        throw new NotImplementedException();
-    }
-
-    public List<Question> getQuestionsForQuizAndUser(Quiz quiz, User user)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void removeDuplicities(Quiz quiz, out List<Question> questions)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<Question> getQuestionsFromModel(QuizCreateViewModel quizModel)
-    {
-        var questions = new List<Question>();
-        foreach (var question in quizModel.Questions)
-        {
-            var q = _context.Questions.FirstOrDefault(q => q.Text == question.Text);
-            if (q != null)
-            {
-                questions.Add(q);
-            }
-        }
-
-        return questions;
+        return quizModel.Questions.Select(question => _context.Questions.FirstOrDefault(q => q.Text == question.Text)).Where(q => q != null).ToList();
     }
 }

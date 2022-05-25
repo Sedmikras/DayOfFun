@@ -1,10 +1,13 @@
 ﻿using DayOfFun.Data;
-using DayOfFun.Data.Services.Contract;
+using DayOfFun.Data.Services.Contracts;
 using DayOfFun.Models.View;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DayOfFun.Controllers;
 
+/// <summary>
+/// Login / Logout controller 
+/// </summary>
 public class AccountController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -16,16 +19,31 @@ public class AccountController : Controller
         _userService = service;
     }
 
+    /// <summary>
+    /// Writes list of users -> its nice security leak... well as this whole program
+    /// </summary>
+    /// <returns>
+    /// View with all users
+    /// </returns>
     public ActionResult Index()
     {
         return View(_context.Users.ToList());
     }
 
+    /// <summary>
+    /// Register screen
+    /// </summary>
+    /// <returns>Register view</returns>
     public ActionResult Register()
     {
         return View();
     }
 
+    /// <summary>
+    /// Register post method in controller - try to register user
+    /// </summary>
+    /// <param name="userModel">info about new user - email, password, username</param>
+    /// <returns>redirection back to view with error message or to login screen if success</returns>
     [HttpPost]
     public ActionResult Register(UserViewModel userModel)
     {
@@ -50,11 +68,20 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Login));
     }
 
+    /// <summary>
+    /// Login controller - get login screen
+    /// </summary>
+    /// <returns>login screen</returns>
     public ActionResult Login()
     {
         return View();
     }
 
+    /// <summary>
+    /// Login logic. POST method.
+    /// </summary>
+    /// <param name="userModel">info about user - email, password</param>
+    /// <returns>redirect to index if success, error otherwise</returns>
     [HttpPost]
     public ActionResult Login(UserViewModel userModel)
     {
@@ -85,6 +112,10 @@ public class AccountController : Controller
         return View();
     }
 
+    /// <summary>
+    /// Logout logic
+    /// </summary>
+    /// <returns>redirect to login screen</returns>
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();

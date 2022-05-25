@@ -65,6 +65,10 @@ namespace DayOfFun.Models.DB
             Users.Add(u);
         }
 
+        /// <summary>
+        /// Creates QuizViewModel from quiz instance
+        /// </summary>
+        /// <returns>QuizViewModel with id, state, title</returns>
         public QuizViewModel ToViewModel()
         {
             return new QuizViewModel()
@@ -75,6 +79,12 @@ namespace DayOfFun.Models.DB
             };
         }
 
+        /// <summary>
+        /// To fill quiz model (with answers)
+        /// </summary>
+        /// <param name="u">instance of user performing action</param>
+        /// <param name="answers">list of answers</param>
+        /// <returns>Fill quiz model (fill answers)</returns>
         public QuizAnswerModel ToAnswerModel(User u, List<Answer> answers)
         {
             var actualQuestions = this.Questions.Select(question => new AnswerView()
@@ -97,6 +107,10 @@ namespace DayOfFun.Models.DB
             };
         }
 
+        /// <summary>
+        /// Used when showing users that want to fill this quiz
+        /// </summary>
+        /// <returns>Users that can access the quiz</returns>
         public IEnumerable<User> ToShareUserViewModel()
         {
             return Users;

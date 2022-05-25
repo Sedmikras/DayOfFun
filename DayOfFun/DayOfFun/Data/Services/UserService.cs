@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using DayOfFun.Data.Services.Contract;
+using DayOfFun.Data.Services.Contracts;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
@@ -17,6 +17,11 @@ public class UserService : IUserService
         _context = context;
     }
 
+    /// <summary>
+    /// registers user - save user to the database
+    /// </summary>
+    /// <param name="uvm">info about users - email (unique) / password / username</param>
+    /// <returns>true if success / false if error</returns>
     public bool RegisterUser(UserViewModel uvm)
     {
         if (_context.Users.FirstOrDefault(u => u.Email == uvm.Email) != null)
@@ -24,6 +29,7 @@ public class UserService : IUserService
             Logger.LogError("User with email {Email} already exists", uvm.Email);
             return false;
         }
+
         var user = uvm.ToApplicationUser();
         _context.Users.Add(user);
         _context.SaveChangesAsync();
@@ -31,17 +37,12 @@ public class UserService : IUserService
         return true;
     }
 
-    public User GetUserByID(int userId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void AddUser(User u)
-    {
-        _context.Users.Add(u);
-        _context.SaveChanges();
-    }
-
+    /// <summary>
+    /// Return user from DB given information in session (logged user)
+    /// </summary>
+    /// <param name="session">Session with info about users</param>
+    /// <param name="user">User instance from DB given the info from session</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetUserFromSession(ISession session, out User user)
     {
         if (session.IsAvailable && session.TryGetValue("UserId", out var value))
@@ -56,22 +57,20 @@ public class UserService : IUserService
         return false;
     }
 
+    /// <summary>
+    /// Return user from DB given email (temporary login from public access) 
+    /// </summary>
+    /// <param name="email">email of the public (non-registered, non-logged) user</param>
+    /// <param name="u">User instance from DB given the info from session</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetUserByEmail(string email, out User? user)
     {
         user = _context.Users.FirstOrDefault(u => u.Email == email);
         return user != null;
     }
 
-    public User UpdateUser(int id, User newUser)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Delete()
-    {
-        throw new NotImplementedException();
-    }
-
+    
+    /*
     public void AddTemporaryUser(string email)
     {
         AddUser(new User()
@@ -79,5 +78,12 @@ public class UserService : IUserService
             Email = email,
             IsTemporary = true
         });
-    }
+    }*/
+
+
+    /*private void AddUser(User u)
+    {
+        _context.Users.Add(u);
+        _context.SaveChanges();
+    }*/
 }

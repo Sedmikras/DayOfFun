@@ -1,14 +1,12 @@
-﻿using DayOfFun.Data.Services.Contract;
+﻿using DayOfFun.Data.Services.Contracts;
 using DayOfFun.Models.DB;
 using DayOfFun.Models.View;
 
 namespace DayOfFun.Data.Services;
 
-//TODO big rework here needed
 public class QuizService : IQuizService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IQuestionService _questionService;
     private readonly IUserService _userService;
 
     private readonly ILogger _logger =
@@ -17,20 +15,13 @@ public class QuizService : IQuizService
     public QuizService(ApplicationDbContext context, IQuestionService questionService, IUserService userService)
     {
         _context = context;
-        _questionService = questionService;
         _userService = userService;
     }
 
-    public bool Add(Quiz quiz, User user)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool Update(Quiz quiz)
-    {
-        throw new NotImplementedException();
-    }
-
+    /// <summary>
+    /// Removes quiz from the database with check
+    /// </summary>
+    /// <param name="quizId">id of the quiz</param>
     public bool Delete(int quizId, User? u)
     {
         var quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId);
@@ -40,60 +31,49 @@ public class QuizService : IQuizService
         return true;
     }
 
-    public bool Delete(Quiz quiz)
-    {
-        throw new NotImplementedException();
-    }
-
+    /// <summary>
+    /// Returns quiz from the database and sets its info as output
+    /// </summary>
+    /// <param name="quizId"> ID of the quiz that will be read </param>
+    /// <param name="quiz"> output object with properties from database</param>
+    /// <returns> true if success </returns>
     public bool Read(int quizId, out Quiz quiz)
     {
         quiz = _context.Quizzes.FirstOrDefault(q => q.Id == quizId) ?? null;
         return quiz != null;
     }
 
+    /// <summary>
+    /// Returns simplified QuizViewModel for user - contains info about quiz so that it can be visualized
+    /// </summary>
+    /// <param name="session">Session with logged user</param>
+    /// <param name="model">OUT QuizViewModel - simplified model for viewing quizzes</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizzesModel(ISession session, out List<QuizViewModel> model)
     {
-        if (!_userService.GetUserFromSession(session, out var u))
-        {
-            _logger.LogError("Cannot read user from session, should redirect");
-            model = new List<QuizViewModel>();
-            return false;
-        }
+        if (_userService.GetUserFromSession(session, out var u)) return GetQuizzesModel(u, out model);
+        _logger.LogError("Cannot read user from session, should redirect");
+        model = new List<QuizViewModel>();
+        return false;
 
-        return GetQuizzesModel(u, out model);
     }
 
+    /// <summary>
+    /// Returns simplified QuizViewModel for user - contains info about quiz so that it can be visualized
+    /// </summary>
+    /// <param name="u">logged user</param>
+    /// <param name="model">OUT QuizViewModel - simplified model for viewing quizzes</param>
+    /// <returns>true if success / false if error</returns>
     public bool GetQuizzesModel(User u, out List<QuizViewModel> model)
     {
         model = u.Quizzes.Select(q => q.ToViewModel()).ToList();
         return true;
     }
 
-    public bool ReadAllForUser(int userId, out List<Quiz> quizzes)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void AddQuiz(Quiz quiz, ISession session)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<Quiz> getQuizzesForUser(User user)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Delete(ISession httpContextSession, int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public QuizAnswerModel getQuestionsFor(ISession httpContextSession, int id)
-    {
-        throw new NotImplementedException();
-    }
-
+    /// <summary>
+    /// Validates model and updates its state in DB
+    /// </summary>
+    /// <param name="quiz">quiz</param>
     public void ValidateModel(Quiz quiz)
     {
         var answers = _context.Answers.Where(a => a.QuizId == quiz.Id).ToList();
@@ -115,11 +95,12 @@ public class QuizService : IQuizService
         quiz.State = numberOfAnswers == numberOfQuestions * numberOfUsers ? State.FINISHED : State.WAITING;
     }
 
-    public Quiz getQuizById(int quizId)
-    {
-        throw new NotImplementedException();
-    }
-
+    /// <summary>
+    /// Returns simplified UserDetailsModel for user - contains info about users that participate in the quiz 
+    /// </summary>
+    /// <param name="quizId">id of the quiz</param>
+    /// <param name="data">result - UserDetailsModel</param>
+    /// <returns>true if success / false if error</returns>
     public bool ToShareUserViewModel(int quizId, out List<UserDetailsModel> data)
     {
         Quiz q;

@@ -31,7 +31,6 @@ public class ApplicationDbContext : DbContext
             @"Server=(localdb)\mssqllocaldb;Database=DayOfFun;Trusted_Connection=True");
         optionsBuilder.UseLoggerFactory(Logger);
         optionsBuilder.UseLazyLoadingProxies();
-        //TODO
-        optionsBuilder.EnableSensitiveDataLogging();
+        //optionsBuilder.EnableSensitiveDataLogging();
     }
 }
