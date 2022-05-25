@@ -9,10 +9,8 @@ namespace DayOfFun.Models.DB
     {
         CREATED,
         PREPARED,
-        DONE,
         WAITING,
         FINISHED,
-        ARCHIVED,
         INVALID
     }
 

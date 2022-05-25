@@ -36,7 +36,7 @@ namespace DayOfFun.Models.DB
     public enum Result : byte
     {
         [Display(Name = "NO")] NO = 0,
-        [Display(Name = "IF XY WANTS")] IF_MUST = 1,
+        [Display(Name = "IF OTHER WANTS")] IF_MUST = 1,
         [Display(Name = "YES")] YES = 2
     }
 }
